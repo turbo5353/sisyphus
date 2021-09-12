@@ -23,6 +23,16 @@ void set_task_str(Task *task, char *str) {
     strcpy(task->task_str, str);
 }
 
+GtkWidget* create_task_element(Task task) {
+    GtkWidget *task_element = gtk_check_button_new();
+    gchar *escaped = g_markup_escape_text(task.task_str, -1);
+    GtkWidget *label = gtk_label_new(escaped);
+    g_free(escaped);
+    gtk_label_set_use_markup(GTK_LABEL(label), TRUE);
+    gtk_container_add(GTK_CONTAINER(task_element), label);
+    return task_element;
+}
+
 unsigned int g_num_tasks = 0;
 Task *task_list = NULL;
 
@@ -45,7 +55,7 @@ static void build_ui(GtkApplication *app) {
     gtk_container_add(GTK_CONTAINER(window), box);
 
     for (unsigned int i = 0; i < g_num_tasks; i++) {
-        GtkWidget *check = gtk_check_button_new_with_label(task_list[i].task_str);
+        GtkWidget *check = create_task_element(task_list[i]);
         gtk_container_add(GTK_CONTAINER(box), check);
     }
 
@@ -60,7 +70,7 @@ int main(int argc, char *argv[]) {
     set_task_str(&task_list[0], "task 1");
 
     task_list[1] = task_new();
-    set_task_str(&task_list[1], "(A) task 2");
+    set_task_str(&task_list[1], "(A) <i>task 2</i>");
 
     task_list[2] = task_new();
     set_task_str(&task_list[2], "(B) 2021-09-12 task3");
