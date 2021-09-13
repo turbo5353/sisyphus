@@ -11,9 +11,12 @@ GtkWidget* create_task_element(Task task) {
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(task_element), TRUE);
     }
 
-    gchar *escaped = g_markup_escape_text(task.task_str, -1);
+    char* display_str = get_task_display_string(&task);
+    gchar *escaped = g_markup_escape_text(display_str, -1);
     GtkWidget *label = gtk_label_new(escaped);
     g_free(escaped);
+    free(display_str);
+
     gtk_label_set_use_markup(GTK_LABEL(label), TRUE);
 
     gtk_container_add(GTK_CONTAINER(task_element), label);
@@ -65,17 +68,17 @@ int main(int argc, char *argv[]) {
     allocate_task_list(4);
 
     task_list[0] = task_new();
-    set_task_str(&task_list[0], "task 1");
+    set_task_description(&task_list[0], "task 1");
 
     task_list[1] = task_new();
-    set_task_str(&task_list[1], "<i>task 2</i>");
+    set_task_description(&task_list[1], "<i>task 2</i>");
 
     task_list[2] = task_new();
-    set_task_str(&task_list[2], "task3");
+    set_task_description(&task_list[2], "task3");
 
     task_list[3] = task_new();
     task_list[3].checked = 1;
-    set_task_str(&task_list[3], "task 4");
+    set_task_description(&task_list[3], "task 4");
 
     // Create GtkApplication
     GtkApplication *app = gtk_application_new("xyz.fossible.sisyphus", G_APPLICATION_FLAGS_NONE);

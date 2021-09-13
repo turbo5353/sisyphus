@@ -5,12 +5,13 @@
 
 typedef struct {
     char checked;
-    size_t task_len;
-    char *task_str;
+    size_t desc_len;
+    char *description;
 } Task;
 
 Task task_new(void);
-void set_task_str(Task *task, char *str);
+void set_task_description(Task *task, char *str);
+char* get_task_display_string(Task *task);
 
 extern unsigned int g_num_tasks;
 extern Task *task_list;

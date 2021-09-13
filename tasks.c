@@ -7,19 +7,25 @@ Task *task_list = NULL;
 Task task_new(void) {
     Task task;
     task.checked = 0;
-    task.task_str = NULL;
-    task.task_len = 0;
+    task.description = NULL;
+    task.desc_len = 0;
     return task;
 }
 
-void set_task_str(Task *task, char *str) {
+void set_task_description(Task *task, char *str) {
     size_t len = strlen(str);
-    if (len > task->task_len) {
-        task->task_str = (char*) realloc(task->task_str, len * sizeof(char));
-        task->task_len = len;
+    if (len > task->desc_len) {
+        task->description = (char*) realloc(task->description, len * sizeof(char));
+        task->desc_len = len;
     }
 
-    strcpy(task->task_str, str);
+    strcpy(task->description, str);
+}
+
+char* get_task_display_string(Task *task) {
+    char* res = malloc(task->desc_len * sizeof(char));
+    strcpy(res, task->description);
+    return res;
 }
 
 void allocate_task_list(unsigned int num_tasks) {
