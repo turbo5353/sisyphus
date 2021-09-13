@@ -5,6 +5,7 @@
 
 typedef struct {
     char checked;
+    char priority;
     size_t desc_len;
     char *description;
 } Task;
