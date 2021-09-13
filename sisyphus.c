@@ -4,6 +4,9 @@
 
 #include "tasks.h"
 
+GtkWidget *task_box = NULL;
+GtkWidget *search_bar = NULL;
+
 GtkWidget* create_task_element(Task task) {
     GtkWidget *task_element = gtk_check_button_new();
 
@@ -26,33 +29,24 @@ void task_toggled(GtkWidget *check, gpointer data) {
     task->checked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check));
 }
 
+gboolean search_filter(GtkListBoxRow *row, gpointer data) {
+    const char *query = gtk_entry_get_text(GTK_ENTRY(search_bar));
 
-GtkWidget *task_box = NULL;
-void create_task_ui(const char *search) {
-    // Remove all previous children
-    GList *list = NULL, *iterator = NULL;
-    list = gtk_container_get_children(GTK_CONTAINER(task_box));
-    for (iterator = list; iterator; iterator = iterator->next) {
-        gtk_container_remove(GTK_CONTAINER(task_box), GTK_WIDGET(iterator->data));
-    }
+    if (query) {
+        GtkWidget *check = gtk_bin_get_child(GTK_BIN(row));
+        GtkWidget *label = gtk_bin_get_child(GTK_BIN(check));
+        const char *text = gtk_label_get_text(GTK_LABEL(label));
 
-    for (unsigned int i = 0; i < g_num_tasks; i++) {
-        if (search) {
-            if (!strstr(task_list[i].description, search)) {
-                continue;
-            }
+        if (!strstr(text, query)) {
+            return FALSE;
         }
-
-        GtkWidget *check = create_task_element(task_list[i]);
-        g_signal_connect(check, "toggled", G_CALLBACK(task_toggled), (void*)(task_list + i));
-        gtk_container_add(GTK_CONTAINER(task_box), check);
     }
 
-    gtk_widget_show_all(task_box);
+    return TRUE;
 }
 
 void search_changed(GtkSearchEntry *search_bar) {
-    create_task_ui(gtk_entry_get_text(GTK_ENTRY(search_bar)));
+    gtk_list_box_invalidate_filter(GTK_LIST_BOX(task_box));
 }
 
 void build_ui(GtkApplication *app) {
@@ -66,7 +60,7 @@ void build_ui(GtkApplication *app) {
     gtk_widget_set_margin_end(box, 12);
     gtk_container_add(GTK_CONTAINER(window), box);
 
-    GtkWidget *search_bar = gtk_search_entry_new();
+    search_bar = gtk_search_entry_new();
     g_signal_connect(search_bar, "search-changed", G_CALLBACK(search_changed), NULL);
     gtk_box_pack_start(GTK_BOX(box), search_bar, FALSE, FALSE, 0);
 
@@ -74,10 +68,19 @@ void build_ui(GtkApplication *app) {
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
     gtk_box_pack_start(GTK_BOX(box), scroll, TRUE, TRUE, 0);
 
-    task_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
+    task_box = gtk_list_box_new();
+    gtk_list_box_set_selection_mode(GTK_LIST_BOX(task_box), GTK_SELECTION_NONE);
+    gtk_list_box_set_filter_func(GTK_LIST_BOX(task_box), search_filter, NULL, NULL);
     gtk_container_add(GTK_CONTAINER(scroll), task_box);
 
-    create_task_ui(NULL);
+    for (unsigned int i = 0; i < g_num_tasks; i++) {
+        GtkWidget *check = create_task_element(task_list[i]);
+        g_signal_connect(check, "toggled", G_CALLBACK(task_toggled), (void*)(task_list + i));
+        gtk_container_add(GTK_CONTAINER(task_box), check);
+    }
+
+    GtkWidget *add_task_button = gtk_button_new_with_label("Add task");
+    gtk_box_pack_start(GTK_BOX(box), add_task_button, FALSE, FALSE, 0);
 
     // Show the window and all its children
     gtk_widget_show_all(GTK_WIDGET(window));
@@ -86,32 +89,14 @@ void build_ui(GtkApplication *app) {
 int main(int argc, char *argv[]) {
     init_task_list();
 
-    Task *task = add_task();
-    task->priority = 2;
-    set_task_description(task, "task 1");
+    for (unsigned int i = 0; i < 1000; i++) {
+        Task *task = add_task();
+        task->priority = 0;
 
-    task = add_task();
-    task->priority = 3;
-    set_task_description(task, "<i>task 2</i>");
-
-    task = add_task();
-    task->priority = 4;
-    set_task_description(task, "task3");
-
-    task = add_task();
-    task->checked = 1;
-    task->priority = 1;
-    set_task_description(task, "task 4");
-
-    task = add_task();
-    task->checked = 1;
-    task->priority = 5;
-    set_task_description(task, "task 5");
-
-    task = add_task();
-    task->checked = 1;
-    task->priority = 6;
-    set_task_description(task, "task 6");
+        char desc[10];
+        snprintf(desc, 10, "task %u", i);
+        set_task_description(task, desc);
+    }
 
     // Create GtkApplication
     GtkApplication *app = gtk_application_new("xyz.fossible.sisyphus", G_APPLICATION_FLAGS_NONE);
