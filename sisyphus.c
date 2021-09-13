@@ -49,12 +49,16 @@ void build_ui(GtkApplication *app) {
     // Create window
     GtkWidget *window = gtk_application_window_new(app);
 
+    GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+    gtk_container_add(GTK_CONTAINER(window), scroll);
+
     task_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
     gtk_widget_set_margin_top(task_box, 12);
     gtk_widget_set_margin_bottom(task_box, 12);
     gtk_widget_set_margin_start(task_box, 12);
     gtk_widget_set_margin_end(task_box, 12);
-    gtk_container_add(GTK_CONTAINER(window), task_box);
+    gtk_container_add(GTK_CONTAINER(scroll), task_box);
 
     create_task_ui();
 
