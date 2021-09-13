@@ -3,6 +3,9 @@
 #include <string.h>
 #include <glib.h>
 
+#define DEFAULT_TASK_LIST_SIZE 2
+
+unsigned int g_max_tasks = DEFAULT_TASK_LIST_SIZE;
 unsigned int g_num_tasks = 0;
 Task *task_list = NULL;
 
@@ -64,10 +67,18 @@ char* get_task_display_string(Task *task) {
     return res;
 }
 
-void allocate_task_list(unsigned int num_tasks) {
-    if (num_tasks > g_num_tasks && num_tasks > 0) {
-        g_num_tasks = num_tasks;
-        task_list = (Task*)realloc(task_list, g_num_tasks * sizeof(Task));
+void init_task_list() {
+    task_list = (Task*)malloc(DEFAULT_TASK_LIST_SIZE * sizeof(Task));
+}
+
+Task* add_task() {
+    if (g_num_tasks >= g_max_tasks) {
+        g_max_tasks *= 2;
+        task_list = (Task*)realloc(task_list, g_max_tasks * sizeof(Task));
     }
+
+    g_num_tasks++;
+    task_list[g_num_tasks - 1] = task_new();
+    return &task_list[g_num_tasks - 1];
 }
 

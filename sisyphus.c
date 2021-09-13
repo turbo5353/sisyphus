@@ -84,34 +84,34 @@ void build_ui(GtkApplication *app) {
 }
 
 int main(int argc, char *argv[]) {
-    allocate_task_list(6);
+    init_task_list();
 
-    task_list[0] = task_new();
-    task_list[0].priority = 2;
-    set_task_description(&task_list[0], "task 1");
+    Task *task = add_task();
+    task->priority = 2;
+    set_task_description(task, "task 1");
 
-    task_list[1] = task_new();
-    task_list[1].priority = 3;
-    set_task_description(&task_list[1], "<i>task 2</i>");
+    task = add_task();
+    task->priority = 3;
+    set_task_description(task, "<i>task 2</i>");
 
-    task_list[2] = task_new();
-    task_list[2].priority = 4;
-    set_task_description(&task_list[2], "task3");
+    task = add_task();
+    task->priority = 4;
+    set_task_description(task, "task3");
 
-    task_list[3] = task_new();
-    task_list[3].checked = 1;
-    task_list[3].priority = 1;
-    set_task_description(&task_list[3], "task 4");
+    task = add_task();
+    task->checked = 1;
+    task->priority = 1;
+    set_task_description(task, "task 4");
 
-    task_list[4] = task_new();
-    task_list[4].checked = 1;
-    task_list[4].priority = 5;
-    set_task_description(&task_list[4], "task 5");
+    task = add_task();
+    task->checked = 1;
+    task->priority = 5;
+    set_task_description(task, "task 5");
 
-    task_list[5] = task_new();
-    task_list[5].checked = 1;
-    task_list[5].priority = 6;
-    set_task_description(&task_list[5], "task 6");
+    task = add_task();
+    task->checked = 1;
+    task->priority = 6;
+    set_task_description(task, "task 6");
 
     // Create GtkApplication
     GtkApplication *app = gtk_application_new("xyz.fossible.sisyphus", G_APPLICATION_FLAGS_NONE);
