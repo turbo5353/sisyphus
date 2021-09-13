@@ -7,10 +7,8 @@
 GtkWidget* create_task_element(Task task) {
     GtkWidget *task_element = gtk_check_button_new();
 
-    if (strlen(task.task_str) >= 2) {
-        if (strncmp(task.task_str, "x ", strlen("x ")) == 0) {
-            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(task_element), TRUE);
-        }
+    if (task.checked) {
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(task_element), TRUE);
     }
 
     gchar *escaped = g_markup_escape_text(task.task_str, -1);
@@ -22,7 +20,11 @@ GtkWidget* create_task_element(Task task) {
     return task_element;
 }
 
-void task_toggled(GtkWidget *check, gpointer data);
+void task_toggled(GtkWidget *check, gpointer data) {
+    Task *task = (Task*) data;
+    task->checked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check));
+}
+
 
 GtkWidget *task_box = NULL;
 void create_task_ui(void) {
@@ -40,18 +42,6 @@ void create_task_ui(void) {
     }
 
     gtk_widget_show_all(task_box);
-}
-
-void task_toggled(GtkWidget *check, gpointer data) {
-    Task *task = (Task*) data;
-
-    if (strlen(task->task_str) >= 2) {
-        if (strncmp(task->task_str, "x ", strlen("x ")) == 0) {
-            memmove(task->task_str, task->task_str + 2, strlen(task->task_str) - 2);
-        }
-    }
-
-    create_task_ui();
 }
 
 void build_ui(GtkApplication *app) {
@@ -78,13 +68,14 @@ int main(int argc, char *argv[]) {
     set_task_str(&task_list[0], "task 1");
 
     task_list[1] = task_new();
-    set_task_str(&task_list[1], "(A) <i>task 2</i>");
+    set_task_str(&task_list[1], "<i>task 2</i>");
 
     task_list[2] = task_new();
-    set_task_str(&task_list[2], "(B) 2021-09-12 task3");
+    set_task_str(&task_list[2], "task3");
 
     task_list[3] = task_new();
-    set_task_str(&task_list[3], "x 2021-09-12 2021-09-12 task 4");
+    task_list[3].checked = 1;
+    set_task_str(&task_list[3], "task 4");
 
     // Create GtkApplication
     GtkApplication *app = gtk_application_new("xyz.fossible.sisyphus", G_APPLICATION_FLAGS_NONE);

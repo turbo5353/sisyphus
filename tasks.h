@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 typedef struct {
+    char checked;
     size_t task_len;
     char *task_str;
 } Task;

@@ -6,6 +6,7 @@ Task *task_list = NULL;
 
 Task task_new(void) {
     Task task;
+    task.checked = 0;
     task.task_str = NULL;
     task.task_len = 0;
     return task;
