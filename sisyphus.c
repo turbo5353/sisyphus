@@ -28,7 +28,7 @@ void task_toggled(GtkWidget *check, gpointer data) {
 
 
 GtkWidget *task_box = NULL;
-void create_task_ui(void) {
+void create_task_ui(const char *search) {
     // Remove all previous children
     GList *list = NULL, *iterator = NULL;
     list = gtk_container_get_children(GTK_CONTAINER(task_box));
@@ -37,12 +37,22 @@ void create_task_ui(void) {
     }
 
     for (unsigned int i = 0; i < g_num_tasks; i++) {
+        if (search) {
+            if (!strstr(task_list[i].description, search)) {
+                continue;
+            }
+        }
+
         GtkWidget *check = create_task_element(task_list[i]);
         g_signal_connect(check, "toggled", G_CALLBACK(task_toggled), (void*)(task_list + i));
         gtk_container_add(GTK_CONTAINER(task_box), check);
     }
 
     gtk_widget_show_all(task_box);
+}
+
+void search_changed(GtkSearchEntry *search_bar) {
+    create_task_ui(gtk_entry_get_text(GTK_ENTRY(search_bar)));
 }
 
 void build_ui(GtkApplication *app) {
@@ -57,6 +67,7 @@ void build_ui(GtkApplication *app) {
     gtk_container_add(GTK_CONTAINER(window), box);
 
     GtkWidget *search_bar = gtk_search_entry_new();
+    g_signal_connect(search_bar, "search-changed", G_CALLBACK(search_changed), NULL);
     gtk_box_pack_start(GTK_BOX(box), search_bar, FALSE, FALSE, 0);
 
     GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
@@ -66,7 +77,7 @@ void build_ui(GtkApplication *app) {
     task_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
     gtk_container_add(GTK_CONTAINER(scroll), task_box);
 
-    create_task_ui();
+    create_task_ui(NULL);
 
     // Show the window and all its children
     gtk_widget_show_all(GTK_WIDGET(window));
