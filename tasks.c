@@ -18,7 +18,7 @@ Task task_new(void) {
     return task;
 }
 
-void set_task_description(Task *task, char *str) {
+void set_task_description(Task *task, const char *str) {
     size_t len = strlen(str);
     if (len > task->desc_len) {
         task->description = (char*) realloc(task->description, len * sizeof(char));

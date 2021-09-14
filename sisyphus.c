@@ -49,6 +49,44 @@ void search_changed(GtkSearchEntry *search_bar) {
     gtk_list_box_invalidate_filter(GTK_LIST_BOX(task_box));
 }
 
+void add_task_clicked(GtkButton *add_task_button) {
+    GtkWidget *window = gtk_widget_get_toplevel(GTK_WIDGET(add_task_button));
+    GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT | GTK_DIALOG_MODAL;
+    GtkWidget *dialog = gtk_dialog_new_with_buttons(
+            "Add task",
+            GTK_WINDOW(window),
+            flags,
+            "_Add task",
+            GTK_RESPONSE_ACCEPT,
+            "_Cancel",
+            GTK_RESPONSE_CANCEL,
+            NULL);
+
+    GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+    GtkWidget *desc_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(desc_entry), "Description");
+    gtk_container_add(GTK_CONTAINER(content_area), desc_entry);
+
+    gtk_widget_show_all(dialog);
+
+    int result = gtk_dialog_run(GTK_DIALOG(dialog));
+    if (result == GTK_RESPONSE_ACCEPT) {
+        const char *desc = gtk_entry_get_text(GTK_ENTRY(desc_entry));
+
+        Task *task = add_task();
+        set_task_description(task, desc);
+
+        GtkWidget *check = create_task_element(*task);
+        g_signal_connect(check, "toggled", G_CALLBACK(task_toggled), (void*)task);
+        gtk_container_add(GTK_CONTAINER(task_box), check);
+
+        gtk_widget_show_all(task_box);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
 void build_ui(GtkApplication *app) {
     // Create window
     GtkWidget *window = gtk_application_window_new(app);
@@ -80,6 +118,7 @@ void build_ui(GtkApplication *app) {
     }
 
     GtkWidget *add_task_button = gtk_button_new_with_label("Add task");
+    g_signal_connect(add_task_button, "clicked", G_CALLBACK(add_task_clicked), NULL);
     gtk_box_pack_start(GTK_BOX(box), add_task_button, FALSE, FALSE, 0);
 
     // Show the window and all its children

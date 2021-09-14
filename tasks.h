@@ -11,7 +11,7 @@ typedef struct {
 } Task;
 
 Task task_new(void);
-void set_task_description(Task *task, char *str);
+void set_task_description(Task *task, const char *str);
 char* get_task_display_string(Task *task);
 
 extern unsigned int g_num_tasks;
