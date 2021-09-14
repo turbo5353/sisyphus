@@ -73,13 +73,36 @@ void add_task_clicked(GtkButton *add_task_button) {
     gtk_entry_set_placeholder_text(GTK_ENTRY(desc_entry), "Description");
     gtk_container_add(GTK_CONTAINER(content_area), desc_entry);
 
+    GtkWidget *priority_combo_box = gtk_combo_box_text_new();
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(priority_combo_box), "");
+
+    for (char pri = 'A'; pri <= 'Z'; pri++) {
+        char str[] = " ";
+        str[0] = pri;
+        gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(priority_combo_box), str);
+    }
+
+    gtk_container_add(GTK_CONTAINER(content_area), priority_combo_box);
+
     gtk_widget_show_all(dialog);
 
     int result = gtk_dialog_run(GTK_DIALOG(dialog));
     if (result == GTK_RESPONSE_ACCEPT) {
         const char *desc = gtk_entry_get_text(GTK_ENTRY(desc_entry));
+        char *pri_str = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(priority_combo_box));
+
+        char pri = 0;
+        if (pri_str) {
+            if (pri_str[0] >= 'A') {
+                // 'A' - 64 = 1
+                pri = pri_str[0] - 64;
+            }
+        }
+
+        g_free(pri_str);
 
         Task *task = add_task();
+        task->priority = pri;
         set_task_description(task, desc);
 
         GtkWidget *check = create_task_element(*task);
