@@ -4,8 +4,15 @@
 
 #include "tasks.h"
 
-GtkWidget *task_box = NULL;
+GtkListStore *task_store = NULL;
+GtkTreeModelFilter *task_filter = NULL;
 GtkWidget *search_bar = NULL;
+
+enum {
+    COLUMN_CHECKED = 0,
+    COLUMN_DESC,
+    N_COLUMNS
+};
 
 GtkWidget* create_task_element(Task task) {
     GtkWidget *task_element = gtk_check_button_new();
@@ -29,24 +36,28 @@ void task_toggled(GtkWidget *check, gpointer data) {
     task->checked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check));
 }
 
-gboolean search_filter(GtkListBoxRow *row, gpointer data) {
+gboolean search_filter(GtkTreeModel *model, GtkTreeIter *iter, gpointer data) {
     const char *query = gtk_entry_get_text(GTK_ENTRY(search_bar));
+    gboolean visible = TRUE;
 
     if (query) {
-        GtkWidget *check = gtk_bin_get_child(GTK_BIN(row));
-        GtkWidget *label = gtk_bin_get_child(GTK_BIN(check));
-        const char *text = gtk_label_get_text(GTK_LABEL(label));
+        char *str;
+        gtk_tree_model_get(model, iter, COLUMN_DESC, &str, -1);
 
-        if (!strstr(text, query)) {
-            return FALSE;
+        if (str) {
+            if (!strstr(str, query)) {
+                visible = FALSE;
+            }
+
+            g_free(str);
         }
     }
 
-    return TRUE;
+    return visible;
 }
 
 void search_changed(GtkSearchEntry *search_bar) {
-    gtk_list_box_invalidate_filter(GTK_LIST_BOX(task_box));
+    gtk_tree_model_filter_refilter(task_filter);
 }
 
 void add_task_clicked(GtkButton *add_task_button) {
@@ -105,11 +116,13 @@ void add_task_clicked(GtkButton *add_task_button) {
         task->priority = pri;
         set_task_description(task, desc);
 
-        GtkWidget *check = create_task_element(*task);
-        g_signal_connect(check, "toggled", G_CALLBACK(task_toggled), (void*)task);
-        gtk_container_add(GTK_CONTAINER(task_box), check);
+        GtkTreeIter iter;
+        gtk_list_store_append(task_store, &iter);
 
-        gtk_widget_show_all(task_box);
+        gtk_list_store_set(task_store, &iter,
+                COLUMN_CHECKED, task->checked,
+                COLUMN_DESC, get_task_display_string(task),
+                -1);
     }
 
     gtk_widget_destroy(dialog);
@@ -134,16 +147,47 @@ void build_ui(GtkApplication *app) {
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
     gtk_box_pack_start(GTK_BOX(box), scroll, TRUE, TRUE, 0);
 
-    task_box = gtk_list_box_new();
-    gtk_list_box_set_selection_mode(GTK_LIST_BOX(task_box), GTK_SELECTION_NONE);
-    gtk_list_box_set_filter_func(GTK_LIST_BOX(task_box), search_filter, NULL, NULL);
-    gtk_container_add(GTK_CONTAINER(scroll), task_box);
+    task_store = gtk_list_store_new(
+            N_COLUMNS,
+            G_TYPE_BOOLEAN,
+            G_TYPE_STRING);
+
+    GtkTreeIter iter;
 
     for (unsigned int i = 0; i < g_num_tasks; i++) {
-        GtkWidget *check = create_task_element(task_list[i]);
-        g_signal_connect(check, "toggled", G_CALLBACK(task_toggled), (void*)(task_list + i));
-        gtk_container_add(GTK_CONTAINER(task_box), check);
+        gtk_list_store_append(task_store, &iter);
+        gtk_list_store_set(task_store, &iter,
+                COLUMN_CHECKED, task_list[i].checked,
+                COLUMN_DESC, get_task_display_string(&task_list[i]),
+                -1);
     }
+
+    task_filter = GTK_TREE_MODEL_FILTER(gtk_tree_model_filter_new(GTK_TREE_MODEL(task_store), NULL));
+    gtk_tree_model_filter_set_visible_func(task_filter, (GtkTreeModelFilterVisibleFunc)search_filter, NULL, NULL);
+
+    GtkWidget *task_view = gtk_tree_view_new();
+    GtkCellRenderer *renderer;
+
+    renderer = gtk_cell_renderer_toggle_new();
+    gtk_tree_view_insert_column_with_attributes(
+            GTK_TREE_VIEW(task_view),
+            -1,
+            "Checked",
+            renderer,
+            "active", COLUMN_CHECKED,
+            NULL);
+
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(
+            GTK_TREE_VIEW(task_view),
+            -1,
+            "Description",
+            renderer,
+            "markup", COLUMN_DESC,
+            NULL);
+
+    gtk_tree_view_set_model(GTK_TREE_VIEW(task_view), GTK_TREE_MODEL(task_filter));
+    gtk_container_add(GTK_CONTAINER(scroll), task_view);
 
     GtkWidget *add_task_button = gtk_button_new_with_label("Add task");
     g_signal_connect(add_task_button, "clicked", G_CALLBACK(add_task_clicked), NULL);
@@ -154,9 +198,11 @@ void build_ui(GtkApplication *app) {
 }
 
 int main(int argc, char *argv[]) {
+    // Make printf print immediately
+    setbuf(stdout, NULL);
     init_task_list();
 
-    for (unsigned int i = 0; i < 1000; i++) {
+    for (unsigned int i = 0; i < 5; i++) {
         Task *task = add_task();
         task->priority = 0;
 
