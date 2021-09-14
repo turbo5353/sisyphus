@@ -63,6 +63,11 @@ void add_task_clicked(GtkButton *add_task_button) {
             NULL);
 
     GtkWidget *content_area = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+    gtk_box_set_spacing(GTK_BOX(content_area), 6);
+    gtk_widget_set_margin_top(content_area, 12);
+    gtk_widget_set_margin_bottom(content_area, 12);
+    gtk_widget_set_margin_start(content_area, 12);
+    gtk_widget_set_margin_end(content_area, 12);
 
     GtkWidget *desc_entry = gtk_entry_new();
     gtk_entry_set_placeholder_text(GTK_ENTRY(desc_entry), "Description");
