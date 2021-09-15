@@ -155,18 +155,6 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
 
     int result = gtk_dialog_run(GTK_DIALOG(dialog));
     if (result == GTK_RESPONSE_ACCEPT) {
-        char *pri_str = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(priority_combo_box));
-
-        char pri = 0;
-        if (pri_str) {
-            if (pri_str[0] >= 'A' && pri_str[0] <= 'Z') {
-                // 'A' - 64 = 1
-                pri = pri_str[0] - 64;
-            }
-        }
-
-        g_free(pri_str);
-
         Task *task = NULL;
         GtkTreeIter iter;
         if (path) {
@@ -178,7 +166,7 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
             gtk_list_store_append(task_store, &iter);
         }
 
-        task->priority = pri;
+        task->priority = gtk_combo_box_get_active(GTK_COMBO_BOX(priority_combo_box));
         task->creation_day = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(creation_day));
         task->creation_month = gtk_combo_box_get_active(GTK_COMBO_BOX(creation_month));
         task->creation_year = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(creation_year));
