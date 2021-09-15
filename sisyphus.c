@@ -14,23 +14,6 @@ enum {
     N_COLUMNS
 };
 
-GtkWidget* create_task_element(Task task) {
-    GtkWidget *task_element = gtk_check_button_new();
-
-    if (task.checked) {
-        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(task_element), TRUE);
-    }
-
-    char *display_str = get_task_display_string(&task);
-    GtkWidget *label = gtk_label_new(display_str);
-    free(display_str);
-
-    gtk_label_set_use_markup(GTK_LABEL(label), TRUE);
-
-    gtk_container_add(GTK_CONTAINER(task_element), label);
-    return task_element;
-}
-
 void task_toggled(GtkCellRendererToggle *toggle, gchar *path_str, gpointer data) {
     GtkTreePath *path = gtk_tree_path_new_from_string(path_str);
     GtkTreePath *child_path = gtk_tree_model_filter_convert_path_to_child_path(task_filter, path);
