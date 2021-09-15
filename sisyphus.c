@@ -73,8 +73,7 @@ void search_changed(GtkSearchEntry *search_bar) {
     gtk_tree_model_filter_refilter(task_filter);
 }
 
-void add_task_clicked(GtkButton *add_task_button) {
-    GtkWidget *window = gtk_widget_get_toplevel(GTK_WIDGET(add_task_button));
+void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
     GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT | GTK_DIALOG_MODAL;
     GtkWidget *dialog = gtk_dialog_new_with_buttons(
             "Add task",
@@ -125,12 +124,19 @@ void add_task_clicked(GtkButton *add_task_button) {
 
         g_free(pri_str);
 
-        Task *task = add_task();
+        Task *task = NULL;
+        GtkTreeIter iter;
+        if (!path) {
+            task = add_task();
+            gtk_list_store_append(task_store, &iter);
+        }
+        else {
+            task = &task_list[gtk_tree_path_get_indices(path)[0]];
+            gtk_tree_model_get_iter(GTK_TREE_MODEL(task_store), &iter, path);
+        }
+
         task->priority = pri;
         set_task_description(task, desc);
-
-        GtkTreeIter iter;
-        gtk_list_store_append(task_store, &iter);
 
         char *pri_display_str = get_task_priority_string(task);
         char *display_str = get_task_display_string(task);
@@ -146,6 +152,18 @@ void add_task_clicked(GtkButton *add_task_button) {
     }
 
     gtk_widget_destroy(dialog);
+}
+
+void task_row_activated(GtkTreeView *view, GtkTreePath *path, GtkTreeViewColumn *col, gpointer data) {
+    GtkWidget *window = gtk_widget_get_toplevel(GTK_WIDGET(view));
+    GtkTreePath *child_path = gtk_tree_model_filter_convert_path_to_child_path(task_filter, path);
+    show_edit_task_dialog(window, child_path);
+    gtk_tree_path_free(child_path);
+}
+
+void add_task_clicked(GtkButton *add_task_button) {
+    GtkWidget *window = gtk_widget_get_toplevel(GTK_WIDGET(add_task_button));
+    show_edit_task_dialog(window, NULL);
 }
 
 void build_ui(GtkApplication *app) {
@@ -195,6 +213,8 @@ void build_ui(GtkApplication *app) {
     gtk_tree_model_filter_set_visible_func(task_filter, (GtkTreeModelFilterVisibleFunc)search_filter, NULL, NULL);
 
     GtkWidget *task_view = gtk_tree_view_new();
+    g_signal_connect(task_view, "row-activated", G_CALLBACK(task_row_activated), NULL);
+
     GtkCellRenderer *renderer;
 
     renderer = gtk_cell_renderer_toggle_new();
