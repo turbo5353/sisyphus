@@ -61,23 +61,9 @@ char* get_task_priority_string(Task *task) {
 
 char* get_task_display_string(Task *task) {
     gchar *escaped = g_markup_escape_text(task->description, -1);
-    char *res = NULL;
 
-    char *pri_str = get_task_priority_string(task);
-
-    if (pri_str) {
-        size_t size = strlen(escaped) + strlen(pri_str);
-        res = malloc(size * sizeof(char));
-
-        strcpy(res, pri_str);
-        strcpy(res + strlen(pri_str), escaped);
-
-        free(pri_str);
-    }
-    else {
-        res = malloc(strlen(escaped) * sizeof(char));
-        strcpy(res, escaped);
-    }
+    char *res = malloc(strlen(escaped) * sizeof(char));
+    strcpy(res, escaped);
 
     g_free(escaped);
     return res;
