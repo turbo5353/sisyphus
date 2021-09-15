@@ -76,10 +76,10 @@ void search_changed(GtkSearchEntry *search_bar) {
 void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
     GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT | GTK_DIALOG_MODAL;
     GtkWidget *dialog = gtk_dialog_new_with_buttons(
-            "Add task",
+            path ? "Edit task" : "Add task",
             GTK_WINDOW(window),
             flags,
-            "_Add task",
+            path ? "_Save" : "_Add",
             GTK_RESPONSE_ACCEPT,
             "_Cancel",
             GTK_RESPONSE_CANCEL,
