@@ -6,6 +6,8 @@
 typedef struct {
     char checked;
     char priority;
+    // e.g YYYY-MM-DD\0
+    char creation_date[11];
     size_t desc_len;
     char *description;
 } Task;

@@ -13,6 +13,7 @@ Task task_new(void) {
     Task task;
     task.checked = 0;
     task.priority = 0;
+    strcpy(task.creation_date, "YYYY-MM-DD");
     task.description = NULL;
     task.desc_len = 0;
     return task;

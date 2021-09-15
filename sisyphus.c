@@ -111,17 +111,22 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
 
     gtk_container_add(GTK_CONTAINER(content_area), priority_combo_box);
 
+    GtkWidget *creation_entry = gtk_entry_new();
+    gtk_entry_set_placeholder_text(GTK_ENTRY(creation_entry), "Creation date");
+    gtk_container_add(GTK_CONTAINER(content_area), creation_entry);
+
+    // Set values if an existing task should be edited
     if (path) {
         Task *task = &task_list[gtk_tree_path_get_indices(path)[0]];
         gtk_entry_set_text(GTK_ENTRY(desc_entry), task->description);
         gtk_combo_box_set_active(GTK_COMBO_BOX(priority_combo_box), task->priority);
+        gtk_entry_set_text(GTK_ENTRY(creation_entry), task->creation_date);
     }
 
     gtk_widget_show_all(dialog);
 
     int result = gtk_dialog_run(GTK_DIALOG(dialog));
     if (result == GTK_RESPONSE_ACCEPT) {
-        const char *desc = gtk_entry_get_text(GTK_ENTRY(desc_entry));
         char *pri_str = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(priority_combo_box));
 
         char pri = 0;
@@ -146,6 +151,9 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
         }
 
         task->priority = pri;
+        const char *creation_date = gtk_entry_get_text(GTK_ENTRY(creation_entry));
+        strcpy(task->creation_date, creation_date);
+        const char *desc = gtk_entry_get_text(GTK_ENTRY(desc_entry));
         set_task_description(task, desc);
 
         char *pri_display_str = get_task_priority_string(task);
