@@ -10,6 +10,7 @@ GtkWidget *search_bar = NULL;
 
 enum {
     COLUMN_CHECKED = 0,
+    COLUMN_PRIORITY,
     COLUMN_DESC,
     N_COLUMNS
 };
@@ -120,11 +121,16 @@ void add_task_clicked(GtkButton *add_task_button) {
         GtkTreeIter iter;
         gtk_list_store_append(task_store, &iter);
 
+        char *pri_display_str = get_task_priority_string(task);
         char *display_str = get_task_display_string(task);
+
         gtk_list_store_set(task_store, &iter,
                 COLUMN_CHECKED, task->checked,
+                COLUMN_PRIORITY, pri_display_str,
                 COLUMN_DESC, display_str,
                 -1);
+
+        free(pri_display_str);
         free(display_str);
     }
 
@@ -153,6 +159,7 @@ void build_ui(GtkApplication *app) {
     task_store = gtk_list_store_new(
             N_COLUMNS,
             G_TYPE_BOOLEAN,
+            G_TYPE_STRING,
             G_TYPE_STRING);
 
     GtkTreeIter iter;
@@ -160,11 +167,16 @@ void build_ui(GtkApplication *app) {
     for (unsigned int i = 0; i < g_num_tasks; i++) {
         gtk_list_store_append(task_store, &iter);
 
+        char *pri_display_str = get_task_priority_string(&task_list[i]);
         char *display_str = get_task_display_string(&task_list[i]);
+
         gtk_list_store_set(task_store, &iter,
                 COLUMN_CHECKED, task_list[i].checked,
+                COLUMN_PRIORITY, pri_display_str,
                 COLUMN_DESC, display_str,
                 -1);
+
+        free(pri_display_str);
         free(display_str);
     }
 
@@ -182,6 +194,15 @@ void build_ui(GtkApplication *app) {
             "Checked",
             renderer,
             "active", COLUMN_CHECKED,
+            NULL);
+
+    renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_insert_column_with_attributes(
+            GTK_TREE_VIEW(task_view),
+            -1,
+            "Priority",
+            renderer,
+            "markup", COLUMN_PRIORITY,
             NULL);
 
     renderer = gtk_cell_renderer_text_new();
