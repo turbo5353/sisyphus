@@ -31,9 +31,27 @@ GtkWidget* create_task_element(Task task) {
     return task_element;
 }
 
-void task_toggled(GtkWidget *check, gpointer data) {
-    Task *task = (Task*) data;
-    task->checked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(check));
+void task_toggled(GtkCellRendererToggle *toggle, gchar *path_str, gpointer data) {
+    GtkTreePath *path = gtk_tree_path_new_from_string(path_str);
+    GtkTreePath *child_path = gtk_tree_model_filter_convert_path_to_child_path(task_filter, path);
+
+    GtkTreeIter iter;
+    gtk_tree_model_get_iter(GTK_TREE_MODEL(task_store), &iter, child_path);
+
+    gboolean active = gtk_cell_renderer_toggle_get_active(toggle);
+
+    GValue check = G_VALUE_INIT;
+    g_value_init(&check, G_TYPE_BOOLEAN);
+    g_value_set_boolean(&check, !active);
+    gtk_list_store_set_value(task_store, &iter, COLUMN_CHECKED, &check);
+    g_value_unset(&check);
+
+    int index = gtk_tree_path_get_indices(child_path)[0];
+    Task *task = &task_list[index];
+    task->checked = !active;
+
+    gtk_tree_path_free(path);
+    gtk_tree_path_free(child_path);
 }
 
 gboolean search_filter(GtkTreeModel *model, GtkTreeIter *iter, gpointer data) {
@@ -169,6 +187,7 @@ void build_ui(GtkApplication *app) {
     GtkCellRenderer *renderer;
 
     renderer = gtk_cell_renderer_toggle_new();
+    g_signal_connect(renderer, "toggled", G_CALLBACK(task_toggled), NULL);
     gtk_tree_view_insert_column_with_attributes(
             GTK_TREE_VIEW(task_view),
             -1,
