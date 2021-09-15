@@ -107,6 +107,12 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
 
     gtk_container_add(GTK_CONTAINER(content_area), priority_combo_box);
 
+    if (path) {
+        Task *task = &task_list[gtk_tree_path_get_indices(path)[0]];
+        gtk_entry_set_text(GTK_ENTRY(desc_entry), task->description);
+        gtk_combo_box_set_active(GTK_COMBO_BOX(priority_combo_box), task->priority);
+    }
+
     gtk_widget_show_all(dialog);
 
     int result = gtk_dialog_run(GTK_DIALOG(dialog));
@@ -126,13 +132,13 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
 
         Task *task = NULL;
         GtkTreeIter iter;
-        if (!path) {
-            task = add_task();
-            gtk_list_store_append(task_store, &iter);
-        }
-        else {
+        if (path) {
             task = &task_list[gtk_tree_path_get_indices(path)[0]];
             gtk_tree_model_get_iter(GTK_TREE_MODEL(task_store), &iter, path);
+        }
+        else {
+            task = add_task();
+            gtk_list_store_append(task_store, &iter);
         }
 
         task->priority = pri;
