@@ -1,6 +1,7 @@
 #include "tasks.h"
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <glib.h>
 
 #define DEFAULT_TASK_LIST_SIZE 2
@@ -29,6 +30,14 @@ void set_task_description(Task *task, const char *str) {
     }
 
     strcpy(task->description, str);
+}
+
+void set_creation_time_now(Task *task) {
+    time_t raw = time(NULL);
+    struct tm *info = localtime(&raw);
+    task->creation_day = info->tm_mday;
+    task->creation_month = info->tm_mon;
+    task->creation_year = info->tm_year + 1900;
 }
 
 char* get_task_priority_string(Task *task) {

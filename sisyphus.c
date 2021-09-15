@@ -1,6 +1,7 @@
 #include <gtk/gtk.h> 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "tasks.h"
 
@@ -115,7 +116,11 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
     GtkWidget *creation_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
     gtk_container_add(GTK_CONTAINER(content_area), creation_box);
 
+    time_t raw_time = time(NULL);
+    struct tm *time_info = localtime(&raw_time);
+
     GtkWidget *creation_day = gtk_spin_button_new_with_range(1, 31, 1);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(creation_day), time_info->tm_mday);
     gtk_box_pack_start(GTK_BOX(creation_box), creation_day, TRUE, TRUE, 0);
 
     GtkWidget *creation_month = gtk_combo_box_text_new();
@@ -139,10 +144,11 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
         gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(creation_month), months[i]);
     }
 
-    gtk_combo_box_set_active(GTK_COMBO_BOX(creation_month), 0);
+    gtk_combo_box_set_active(GTK_COMBO_BOX(creation_month), time_info->tm_mon);
     gtk_box_pack_start(GTK_BOX(creation_box), creation_month, TRUE, TRUE, 0);
 
     GtkWidget *creation_year = gtk_spin_button_new_with_range(1000, 9999, 1);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(creation_year), time_info->tm_year + 1900);
     gtk_box_pack_start(GTK_BOX(creation_box), creation_year, TRUE, TRUE, 0);
 
     // Set values if an existing task should be edited
@@ -338,6 +344,7 @@ int main(int argc, char *argv[]) {
     for (unsigned int i = 0; i < 5; i++) {
         Task *task = add_task();
         task->priority = 0;
+        set_creation_time_now(task);
 
         char desc[10];
         snprintf(desc, 10, "task %u", i);
