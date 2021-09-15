@@ -24,15 +24,26 @@ void task_toggled(GtkCellRendererToggle *toggle, gchar *path_str, gpointer data)
 
     gboolean active = gtk_cell_renderer_toggle_get_active(toggle);
 
+    int index = gtk_tree_path_get_indices(child_path)[0];
+    Task *task = &task_list[index];
+    task->checked = !active;
+    task->priority = 0;
+
     GValue check = G_VALUE_INIT;
     g_value_init(&check, G_TYPE_BOOLEAN);
     g_value_set_boolean(&check, !active);
     gtk_list_store_set_value(task_store, &iter, COLUMN_CHECKED, &check);
     g_value_unset(&check);
 
-    int index = gtk_tree_path_get_indices(child_path)[0];
-    Task *task = &task_list[index];
-    task->checked = !active;
+    char *pri_str = get_task_priority_string(task);
+
+    GValue priority = G_VALUE_INIT;
+    g_value_init(&priority, G_TYPE_STRING);
+    g_value_set_string(&priority, pri_str);
+    gtk_list_store_set_value(task_store, &iter, COLUMN_PRIORITY, &priority);
+    g_value_unset(&priority);
+
+    free(pri_str);
 
     gtk_tree_path_free(path);
     gtk_tree_path_free(child_path);
