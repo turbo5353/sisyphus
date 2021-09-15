@@ -110,8 +110,11 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
     gtk_combo_box_set_active(GTK_COMBO_BOX(priority_combo_box), 0);
     gtk_container_add(GTK_CONTAINER(content_area), priority_combo_box);
 
+    GtkWidget *creation_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+    gtk_container_add(GTK_CONTAINER(content_area), creation_box);
+
     GtkWidget *creation_day = gtk_spin_button_new_with_range(1, 31, 1);
-    gtk_container_add(GTK_CONTAINER(content_area), creation_day);
+    gtk_box_pack_start(GTK_BOX(creation_box), creation_day, TRUE, TRUE, 0);
 
     GtkWidget *creation_month = gtk_combo_box_text_new();
 
@@ -135,10 +138,10 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
     }
 
     gtk_combo_box_set_active(GTK_COMBO_BOX(creation_month), 0);
-    gtk_container_add(GTK_CONTAINER(content_area), creation_month);
+    gtk_box_pack_start(GTK_BOX(creation_box), creation_month, TRUE, TRUE, 0);
 
     GtkWidget *creation_year = gtk_spin_button_new_with_range(1000, 9999, 1);
-    gtk_container_add(GTK_CONTAINER(content_area), creation_year);
+    gtk_box_pack_start(GTK_BOX(creation_box), creation_year, TRUE, TRUE, 0);
 
     // Set values if an existing task should be edited
     if (path) {
