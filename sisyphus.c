@@ -120,10 +120,12 @@ void add_task_clicked(GtkButton *add_task_button) {
         GtkTreeIter iter;
         gtk_list_store_append(task_store, &iter);
 
+        char *display_str = get_task_display_string(task);
         gtk_list_store_set(task_store, &iter,
                 COLUMN_CHECKED, task->checked,
-                COLUMN_DESC, get_task_display_string(task),
+                COLUMN_DESC, display_str,
                 -1);
+        free(display_str);
     }
 
     gtk_widget_destroy(dialog);
@@ -157,10 +159,13 @@ void build_ui(GtkApplication *app) {
 
     for (unsigned int i = 0; i < g_num_tasks; i++) {
         gtk_list_store_append(task_store, &iter);
+
+        char *display_str = get_task_display_string(&task_list[i]);
         gtk_list_store_set(task_store, &iter,
                 COLUMN_CHECKED, task_list[i].checked,
-                COLUMN_DESC, get_task_display_string(&task_list[i]),
+                COLUMN_DESC, display_str,
                 -1);
+        free(display_str);
     }
 
     task_filter = GTK_TREE_MODEL_FILTER(gtk_tree_model_filter_new(GTK_TREE_MODEL(task_store), NULL));
