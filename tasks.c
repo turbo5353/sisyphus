@@ -34,30 +34,29 @@ char* get_task_priority_string(Task *task) {
     const char *priority_colors[] = { "red", "orange", "green", "blue", "gray" };
 
     // priority pango markup string
-    const char *priority_format = "<span foreground=\"%s\">(%c)</span> ";
+    const char *priority_format = "<span foreground=\"%s\">%c</span>";
+
+    char priority_letter = '-';
+    const char *color = "gray";
 
     if (task->priority) {
         // 65 is the index of the 'A' character
-        char priority_letter = task->priority + 64;
+        priority_letter = task->priority + 64;
 
-        // the 7 makes space for the color string (e.g #000000)
-        size_t size = strlen(priority_format) + 7;
-        char *res = malloc(size * sizeof(char));
-
-        const char *color;
         if (task->priority > num_colors) {
             color = priority_colors[num_colors - 1];
         }
         else {
             color = priority_colors[task->priority - 1];
         }
+    }
 
-        snprintf(res, size * sizeof(char), priority_format, color, priority_letter);
-        return res;
-    }
-    else {
-        return NULL;
-    }
+    // the 7 makes space for the color string (e.g #000000)
+    size_t size = strlen(priority_format) + 7;
+    char *res = malloc(size * sizeof(char));
+
+    snprintf(res, size * sizeof(char), priority_format, color, priority_letter);
+    return res;
 }
 
 char* get_task_display_string(Task *task) {
