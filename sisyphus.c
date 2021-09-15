@@ -108,19 +108,47 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
     }
 
     gtk_combo_box_set_active(GTK_COMBO_BOX(priority_combo_box), 0);
-
     gtk_container_add(GTK_CONTAINER(content_area), priority_combo_box);
 
-    GtkWidget *creation_entry = gtk_entry_new();
-    gtk_entry_set_placeholder_text(GTK_ENTRY(creation_entry), "Creation date");
-    gtk_container_add(GTK_CONTAINER(content_area), creation_entry);
+    GtkWidget *creation_day = gtk_spin_button_new_with_range(1, 31, 1);
+    gtk_container_add(GTK_CONTAINER(content_area), creation_day);
+
+    GtkWidget *creation_month = gtk_combo_box_text_new();
+
+    const char *months[] = {
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+    };
+
+    for (unsigned int i = 0; i < 12; i++) {
+        gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(creation_month), months[i]);
+    }
+
+    gtk_combo_box_set_active(GTK_COMBO_BOX(creation_month), 0);
+    gtk_container_add(GTK_CONTAINER(content_area), creation_month);
+
+    GtkWidget *creation_year = gtk_spin_button_new_with_range(1000, 9999, 1);
+    gtk_container_add(GTK_CONTAINER(content_area), creation_year);
 
     // Set values if an existing task should be edited
     if (path) {
         Task *task = &task_list[gtk_tree_path_get_indices(path)[0]];
         gtk_entry_set_text(GTK_ENTRY(desc_entry), task->description);
         gtk_combo_box_set_active(GTK_COMBO_BOX(priority_combo_box), task->priority);
-        gtk_entry_set_text(GTK_ENTRY(creation_entry), task->creation_date);
+
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(creation_day), task->creation_day);
+        gtk_combo_box_set_active(GTK_COMBO_BOX(creation_month), task->creation_month);
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(creation_year), task->creation_year);
     }
 
     gtk_widget_show_all(dialog);
@@ -151,8 +179,9 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
         }
 
         task->priority = pri;
-        const char *creation_date = gtk_entry_get_text(GTK_ENTRY(creation_entry));
-        strcpy(task->creation_date, creation_date);
+        task->creation_day = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(creation_day));
+        task->creation_month = gtk_combo_box_get_active(GTK_COMBO_BOX(creation_month));
+        task->creation_year = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(creation_year));
         const char *desc = gtk_entry_get_text(GTK_ENTRY(desc_entry));
         set_task_description(task, desc);
 

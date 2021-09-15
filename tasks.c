@@ -13,7 +13,9 @@ Task task_new(void) {
     Task task;
     task.checked = 0;
     task.priority = 0;
-    strcpy(task.creation_date, "YYYY-MM-DD");
+    task.creation_day = 1;
+    task.creation_month = 0;
+    task.creation_year = 1000;
     task.description = NULL;
     task.desc_len = 0;
     return task;
