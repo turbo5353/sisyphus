@@ -11,7 +11,7 @@ GtkWidget *search_bar = NULL;
 enum {
     COLUMN_CHECKED = 0,
     COLUMN_PRIORITY,
-    COLUMN_DESC,
+    COLUMN_DESCRIPTION,
     N_COLUMNS
 };
 
@@ -44,7 +44,7 @@ gboolean search_filter(GtkTreeModel *model, GtkTreeIter *iter, gpointer data) {
 
     if (query) {
         char *str;
-        gtk_tree_model_get(model, iter, COLUMN_DESC, &str, -1);
+        gtk_tree_model_get(model, iter, COLUMN_DESCRIPTION, &str, -1);
 
         if (str) {
             if (!strstr(str, query)) {
@@ -127,7 +127,7 @@ void add_task_clicked(GtkButton *add_task_button) {
         gtk_list_store_set(task_store, &iter,
                 COLUMN_CHECKED, task->checked,
                 COLUMN_PRIORITY, pri_display_str,
-                COLUMN_DESC, display_str,
+                COLUMN_DESCRIPTION, display_str,
                 -1);
 
         free(pri_display_str);
@@ -173,7 +173,7 @@ void build_ui(GtkApplication *app) {
         gtk_list_store_set(task_store, &iter,
                 COLUMN_CHECKED, task_list[i].checked,
                 COLUMN_PRIORITY, pri_display_str,
-                COLUMN_DESC, display_str,
+                COLUMN_DESCRIPTION, display_str,
                 -1);
 
         free(pri_display_str);
@@ -211,7 +211,7 @@ void build_ui(GtkApplication *app) {
             -1,
             "Description",
             renderer,
-            "markup", COLUMN_DESC,
+            "markup", COLUMN_DESCRIPTION,
             NULL);
 
     gtk_tree_view_set_model(GTK_TREE_VIEW(task_view), GTK_TREE_MODEL(task_filter));
