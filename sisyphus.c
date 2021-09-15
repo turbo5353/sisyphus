@@ -97,13 +97,15 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
     gtk_container_add(GTK_CONTAINER(content_area), desc_entry);
 
     GtkWidget *priority_combo_box = gtk_combo_box_text_new();
-    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(priority_combo_box), "");
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(priority_combo_box), "-");
 
     for (char pri = 'A'; pri <= 'Z'; pri++) {
         char str[] = " ";
         str[0] = pri;
         gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(priority_combo_box), str);
     }
+
+    gtk_combo_box_set_active(GTK_COMBO_BOX(priority_combo_box), 0);
 
     gtk_container_add(GTK_CONTAINER(content_area), priority_combo_box);
 
@@ -122,7 +124,7 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
 
         char pri = 0;
         if (pri_str) {
-            if (pri_str[0] >= 'A') {
+            if (pri_str[0] >= 'A' && pri_str[0] <= 'Z') {
                 // 'A' - 64 = 1
                 pri = pri_str[0] - 64;
             }
