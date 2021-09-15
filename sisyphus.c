@@ -7,6 +7,8 @@
 GtkListStore *task_store = NULL;
 GtkTreeModelFilter *task_filter = NULL;
 GtkWidget *search_bar = NULL;
+GtkWidget *remove_task_button = NULL;
+GtkTreeSelection *task_selection = NULL;
 
 enum {
     COLUMN_CHECKED = 0,
@@ -174,6 +176,29 @@ void add_task_clicked(GtkButton *add_task_button) {
     show_edit_task_dialog(window, NULL);
 }
 
+void remove_task_clicked(GtkButton *remove_task_button) {
+    if (task_selection) {
+        GtkTreeIter iter;
+        if (gtk_tree_selection_get_selected(task_selection, NULL, &iter)) {
+            GtkTreePath *path = gtk_tree_model_get_path(GTK_TREE_MODEL(task_filter), &iter);
+            GtkTreePath *child_path = gtk_tree_model_filter_convert_path_to_child_path(task_filter, path);
+
+            gtk_tree_model_get_iter(GTK_TREE_MODEL(task_store), &iter, child_path);
+            gtk_list_store_remove(task_store, &iter);
+            remove_task(gtk_tree_path_get_indices(child_path)[0]);
+
+            gtk_tree_path_free(path);
+            gtk_tree_path_free(child_path);
+        }
+    }
+}
+
+void task_selection_changed(GtkTreeSelection *selection, gpointer user_data) {
+    if (remove_task_button) {
+        gtk_widget_set_sensitive(remove_task_button, gtk_tree_selection_get_selected(selection, NULL, NULL));
+    }
+}
+
 void build_ui(GtkApplication *app) {
     // Create window
     GtkWidget *window = gtk_application_window_new(app);
@@ -223,6 +248,9 @@ void build_ui(GtkApplication *app) {
     GtkWidget *task_view = gtk_tree_view_new();
     g_signal_connect(task_view, "row-activated", G_CALLBACK(task_row_activated), NULL);
 
+    task_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(task_view));
+    g_signal_connect(task_selection, "changed", G_CALLBACK(task_selection_changed), NULL);
+
     GtkCellRenderer *renderer;
 
     renderer = gtk_cell_renderer_toggle_new();
@@ -256,9 +284,17 @@ void build_ui(GtkApplication *app) {
     gtk_tree_view_set_model(GTK_TREE_VIEW(task_view), GTK_TREE_MODEL(task_filter));
     gtk_container_add(GTK_CONTAINER(scroll), task_view);
 
+    GtkWidget *button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+    gtk_box_pack_start(GTK_BOX(box), button_box, FALSE, FALSE, 0);
+
     GtkWidget *add_task_button = gtk_button_new_with_label("Add task");
     g_signal_connect(add_task_button, "clicked", G_CALLBACK(add_task_clicked), NULL);
-    gtk_box_pack_start(GTK_BOX(box), add_task_button, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(button_box), add_task_button, TRUE, TRUE, 0);
+
+    remove_task_button = gtk_button_new_with_label("Remove task");
+    gtk_widget_set_sensitive(remove_task_button, FALSE);
+    g_signal_connect(remove_task_button, "clicked", G_CALLBACK(remove_task_clicked), NULL);
+    gtk_box_pack_start(GTK_BOX(button_box), remove_task_button, TRUE, TRUE, 0);
 
     // Show the window and all its children
     gtk_widget_show_all(GTK_WIDGET(window));

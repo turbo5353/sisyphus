@@ -84,3 +84,12 @@ Task* add_task() {
     return &task_list[g_num_tasks - 1];
 }
 
+void remove_task(unsigned int index) {
+    free(task_list[index].description);
+    g_num_tasks--;
+
+    if (index < g_num_tasks) {
+        memmove(task_list + index, task_list + index + 1, (g_num_tasks - index) * sizeof(Task));
+    }
+}
+
