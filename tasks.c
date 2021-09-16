@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
 #include <glib.h>
 
 #define DEFAULT_TASK_LIST_SIZE 2
@@ -152,55 +153,137 @@ void write_file(const char *filename) {
     fclose(file);
 }
 
+bool read_checked(FILE *file) {
+    char checked[3];
+    fgets(checked, 3, file);
+
+    if (strcmp("x ", checked) == 0) {
+        return true;
+    }
+    else {
+        fseek(file, -2, SEEK_CUR);
+        return false;
+    }
+}
+
+char read_priority(FILE *file) {
+    char priority[4];
+    fgets(priority, 4, file);
+
+    if (priority[0] == '(' && priority[2] == ')') {
+        if (priority[1] >= 'A' && priority[1] <= 'Z') {
+            int next = fgetc(file);
+            fseek(file, -1, SEEK_CUR);
+
+            if (next == ' ' || next == '\n' || next == EOF) {
+                return priority[1] - 64;
+            }
+        }
+    }
+
+    fseek(file, -3, SEEK_CUR);
+    return 0;
+}
+
+bool read_date(FILE *file, int *day, int *month, int *year) {
+    long cur = ftell(file);
+    bool scan_success = fscanf(file, "%4d-%2d-%2d", year, month, day) == 3;
+    int whitespace = fgetc(file);
+    bool whitespace_success = whitespace == ' ' || whitespace == '\n' || whitespace == EOF;
+
+    bool success = scan_success && whitespace_success;
+
+    if (!success) {
+        fseek(file, cur, SEEK_SET);
+    }
+
+    return success;
+}
+
+void read_dates(FILE *file, Task *task) {
+    int first_day, first_month, first_year;
+    bool first_date_success = read_date(file, &first_day, &first_month, &first_year);
+
+    int second_day, second_month, second_year;
+    bool second_date_success = read_date(file, &second_day, &second_month, &second_year);
+
+    if (first_date_success && second_date_success) {
+        // first date is the completion date
+        // second date is the creation date
+        if (task->checked) {
+            task->completion_day = first_day;
+            task->completion_month = first_month - 1;
+            task->completion_year = first_year;
+        }
+
+        task->creation_day = second_day;
+        task->creation_month = second_month - 1;
+        task->creation_year = second_year;
+    }
+    else if (first_date_success) {
+        // first date is the creation date
+        // second date does not exist
+        task->creation_day = first_day;
+        task->creation_month = first_month - 1;
+        task->creation_year = first_year;
+
+        set_task_completion_time_now(task);
+    }
+    else {
+        set_task_creation_time_now(task);
+        set_task_completion_time_now(task);
+    }
+}
+
 void read_file(const char *filename) {
     init_task_list();
 
     FILE *file = fopen(filename, "r");
-    long cur = ftell(file);
 
-    gboolean repeat = TRUE;
-    while (repeat) {
-        int next_char = fgetc(file);
-
-        if (next_char == EOF) {
-            break;
-        }
-
+    for (;;) {
         Task *task = add_task();
 
-        // Check if the task has been completed
-        if (next_char == 'x') {
-            if (fgetc(file) == ' ') {
-                task->checked = 1;
-                cur = ftell(file);
-                next_char = fgetc(file);
-            }
-            else {
-                fseek(file, -1, SEEK_CUR);
-            }
+        if (fgetc(file) == '\n') {
+            set_task_description(task, "");
+            set_task_creation_time_now(task);
+            set_task_completion_time_now(task);
+            continue;
+        }
+        else {
+            fseek(file, -1, SEEK_CUR);
         }
 
+        task->checked = read_checked(file);
+        task->priority = read_priority(file);
+        read_dates(file, task);
+
+        long cur = ftell(file);
+        int next = fgetc(file);
         int num_chars = 0;
-        while (next_char != '\n' && next_char != EOF) {
+        while (next != '\n' && next != EOF) {
             num_chars++;
-            next_char = fgetc(file);
+            next = fgetc(file);
         }
-
-        if (next_char == EOF) repeat = FALSE;
 
         if (num_chars > 0) {
-            char *desc = malloc((num_chars + 1) * sizeof(char));
             fseek(file, cur, SEEK_SET);
+            char *desc = malloc((num_chars + 1) * sizeof(char));
             fgets(desc, num_chars + 1, file);
+
             set_task_description(task, desc);
             free(desc);
-            fseek(file, 1, SEEK_CUR);
         }
         else {
             set_task_description(task, "");
         }
 
-        cur = ftell(file);
+        if (next == '\n') fseek(file, 1, SEEK_CUR);
+        if (fgetc(file) == EOF) {
+            break;
+        }
+        else {
+            fseek(file, -1, SEEK_CUR);
+        }
     }
 
     fclose(file);
