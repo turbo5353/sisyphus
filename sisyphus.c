@@ -33,6 +33,7 @@ void task_toggled(GtkCellRendererToggle *toggle, gchar *path_str, gpointer data)
 
     if (new_active) {
         task->priority = 0;
+        set_task_completion_time_now(task);
         char *pri_str = get_task_priority_string(task);
 
         GValue priority = G_VALUE_INIT;
@@ -133,6 +134,7 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
 
     // Completion date
     GtkWidget *completion_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+    gtk_widget_set_sensitive(completion_box, FALSE);
     gtk_container_add(GTK_CONTAINER(content_area), completion_box);
 
     GtkWidget *completion_day = gtk_spin_button_new_with_range(1, 31, 1);
@@ -182,9 +184,12 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
         gtk_combo_box_set_active(GTK_COMBO_BOX(creation_month), task->creation_month);
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(creation_year), task->creation_year);
 
-        gtk_spin_button_set_value(GTK_SPIN_BUTTON(completion_day), task->completion_day);
-        gtk_combo_box_set_active(GTK_COMBO_BOX(completion_month), task->completion_month);
-        gtk_spin_button_set_value(GTK_SPIN_BUTTON(completion_year), task->completion_year);
+        if (task->checked) {
+            gtk_widget_set_sensitive(completion_box, TRUE);
+            gtk_spin_button_set_value(GTK_SPIN_BUTTON(completion_day), task->completion_day);
+            gtk_combo_box_set_active(GTK_COMBO_BOX(completion_month), task->completion_month);
+            gtk_spin_button_set_value(GTK_SPIN_BUTTON(completion_year), task->completion_year);
+        }
     }
 
     gtk_widget_show_all(dialog);
