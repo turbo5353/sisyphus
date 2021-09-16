@@ -5,6 +5,7 @@
 
 #include "tasks.h"
 
+char *filename = "todo.txt";
 GtkListStore *task_store = NULL;
 GtkTreeModelFilter *task_filter = NULL;
 GtkWidget *search_bar = NULL;
@@ -53,6 +54,8 @@ void task_toggled(GtkCellRendererToggle *toggle, gchar *path_str, gpointer data)
 
     gtk_tree_path_free(path);
     gtk_tree_path_free(child_path);
+
+    write_file(filename);
 }
 
 gboolean search_filter(GtkTreeModel *model, GtkTreeIter *iter, gpointer data) {
@@ -232,6 +235,8 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
 
         free(pri_display_str);
         free(display_str);
+
+        write_file(filename);
     }
 
     gtk_widget_destroy(dialog);
@@ -262,6 +267,8 @@ void remove_task_clicked(GtkButton *remove_task_button) {
 
             gtk_tree_path_free(path);
             gtk_tree_path_free(child_path);
+
+            write_file(filename);
         }
     }
 }
@@ -388,6 +395,8 @@ int main(int argc, char *argv[]) {
         snprintf(desc, 10, "task %u", i);
         set_task_description(task, desc);
     }
+
+    write_file(filename);
 
     // Create GtkApplication
     GtkApplication *app = gtk_application_new("xyz.fossible.sisyphus", G_APPLICATION_FLAGS_NONE);

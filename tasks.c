@@ -113,3 +113,38 @@ void remove_task(unsigned int index) {
     }
 }
 
+void write_file(const char *filename) {
+    FILE *file;
+    file = fopen(filename, "w");
+
+    for (unsigned int i = 0; i < g_num_tasks; i++) {
+        Task *task = &task_list[i];
+
+        if (task->checked) {
+            fputs("x ", file);
+        }
+
+        if (task->priority) {
+            char priority_letter = task->priority + 64;
+            fprintf(file, "(%c) ", priority_letter);
+        }
+
+        if (task->checked) {
+            fprintf(file, "%04u-%02u-%02u ",
+                    task->completion_year,
+                    task->completion_month,
+                    task->completion_day);
+        }
+
+        fprintf(file, "%04u-%02u-%02u ",
+                task->creation_year,
+                task->creation_month,
+                task->creation_day);
+
+        fputs(task->description, file);
+        fputc('\n', file);
+    }
+
+    fclose(file);
+}
+

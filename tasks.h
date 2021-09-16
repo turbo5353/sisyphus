@@ -33,5 +33,7 @@ void init_task_list();
 Task* add_task();
 void remove_task(unsigned int index);
 
+void write_file(const char *filename);
+
 #endif
 
