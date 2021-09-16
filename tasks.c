@@ -32,7 +32,7 @@ void set_task_description(Task *task, const char *str) {
     strcpy(task->description, str);
 }
 
-void set_creation_time_now(Task *task) {
+void set_task_creation_time_now(Task *task) {
     time_t raw = time(NULL);
     struct tm *info = localtime(&raw);
     task->creation_day = info->tm_mday;
@@ -40,7 +40,7 @@ void set_creation_time_now(Task *task) {
     task->creation_year = info->tm_year + 1900;
 }
 
-void set_completion_time_now(Task *task) {
+void set_task_completion_time_now(Task *task) {
     time_t raw = time(NULL);
     struct tm *info = localtime(&raw);
     task->completion_day = info->tm_mday;

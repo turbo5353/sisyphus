@@ -21,8 +21,8 @@ typedef struct {
 
 Task task_new(void);
 void set_task_description(Task *task, const char *str);
-void set_creation_time_now(Task *task);
-void set_completion_time_now(Task *task);
+void set_task_creation_time_now(Task *task);
+void set_task_completion_time_now(Task *task);
 char* get_task_priority_string(Task *task);
 char* get_task_display_string(Task *task);
 

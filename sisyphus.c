@@ -376,8 +376,8 @@ int main(int argc, char *argv[]) {
     for (unsigned int i = 0; i < 5; i++) {
         Task *task = add_task();
         task->priority = 0;
-        set_creation_time_now(task);
-        set_completion_time_now(task);
+        set_task_creation_time_now(task);
+        set_task_completion_time_now(task);
 
         char desc[10];
         snprintf(desc, 10, "task %u", i);
