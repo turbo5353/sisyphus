@@ -25,11 +25,16 @@ Task task_new(void) {
 void set_task_description(Task *task, const char *str) {
     size_t len = strlen(str);
     if (len > task->desc_len) {
-        task->description = (char*) realloc(task->description, len * sizeof(char));
-        task->desc_len = len;
+        task->description = (char*) realloc(task->description, (len + 1) * sizeof(char));
+        task->desc_len = len + 1;
     }
 
-    strcpy(task->description, str);
+    if (len > 0) {
+        strcpy(task->description, str);
+    }
+    else {
+        task->description = "";
+    }
 }
 
 void set_task_creation_time_now(Task *task) {
@@ -114,8 +119,7 @@ void remove_task(unsigned int index) {
 }
 
 void write_file(const char *filename) {
-    FILE *file;
-    file = fopen(filename, "w");
+    FILE *file = fopen(filename, "w");
 
     for (unsigned int i = 0; i < g_num_tasks; i++) {
         Task *task = &task_list[i];
@@ -132,17 +136,59 @@ void write_file(const char *filename) {
         if (task->checked) {
             fprintf(file, "%04u-%02u-%02u ",
                     task->completion_year,
-                    task->completion_month,
+                    task->completion_month + 1,
                     task->completion_day);
         }
 
         fprintf(file, "%04u-%02u-%02u ",
                 task->creation_year,
-                task->creation_month,
+                task->creation_month + 1,
                 task->creation_day);
 
         fputs(task->description, file);
         fputc('\n', file);
+    }
+
+    fclose(file);
+}
+
+void read_file(const char *filename) {
+    init_task_list();
+
+    FILE *file = fopen(filename, "r");
+    long cur = ftell(file);
+
+    gboolean repeat = TRUE;
+    while (repeat) {
+        int next_char = fgetc(file);
+
+        if (next_char == EOF) {
+            break;
+        }
+
+        Task *task = add_task();
+
+        int num_chars = 0;
+        while (next_char != '\n' && next_char != EOF) {
+            num_chars++;
+            next_char = fgetc(file);
+        }
+
+        if (next_char == EOF) repeat = FALSE;
+
+        if (num_chars > 0) {
+            char *desc = malloc((num_chars + 1) * sizeof(char));
+            fseek(file, cur, SEEK_SET);
+            fgets(desc, num_chars + 1, file);
+            set_task_description(task, desc);
+            free(desc);
+            fseek(file, 1, SEEK_CUR);
+        }
+        else {
+            set_task_description(task, "");
+        }
+
+        cur = ftell(file);
     }
 
     fclose(file);

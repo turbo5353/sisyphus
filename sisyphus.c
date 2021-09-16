@@ -383,8 +383,9 @@ void build_ui(GtkApplication *app) {
 int main(int argc, char *argv[]) {
     // Make printf print immediately
     setbuf(stdout, NULL);
-    init_task_list();
+    read_file(filename);
 
+    /*
     for (unsigned int i = 0; i < 5; i++) {
         Task *task = add_task();
         task->priority = 0;
@@ -395,8 +396,7 @@ int main(int argc, char *argv[]) {
         snprintf(desc, 10, "task %u", i);
         set_task_description(task, desc);
     }
-
-    write_file(filename);
+    */
 
     // Create GtkApplication
     GtkApplication *app = gtk_application_new("xyz.fossible.sisyphus", G_APPLICATION_FLAGS_NONE);
