@@ -113,18 +113,40 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
     gtk_combo_box_set_active(GTK_COMBO_BOX(priority_combo_box), 0);
     gtk_container_add(GTK_CONTAINER(content_area), priority_combo_box);
 
-    GtkWidget *creation_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-    gtk_container_add(GTK_CONTAINER(content_area), creation_box);
-
     time_t raw_time = time(NULL);
     struct tm *time_info = localtime(&raw_time);
+
+    // Creation date
+    GtkWidget *creation_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+    gtk_container_add(GTK_CONTAINER(content_area), creation_box);
 
     GtkWidget *creation_day = gtk_spin_button_new_with_range(1, 31, 1);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(creation_day), time_info->tm_mday);
     gtk_box_pack_start(GTK_BOX(creation_box), creation_day, TRUE, TRUE, 0);
 
     GtkWidget *creation_month = gtk_combo_box_text_new();
+    gtk_box_pack_start(GTK_BOX(creation_box), creation_month, TRUE, TRUE, 0);
 
+    GtkWidget *creation_year = gtk_spin_button_new_with_range(1000, 9999, 1);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(creation_year), time_info->tm_year + 1900);
+    gtk_box_pack_start(GTK_BOX(creation_box), creation_year, TRUE, TRUE, 0);
+
+    // Completion date
+    GtkWidget *completion_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+    gtk_container_add(GTK_CONTAINER(content_area), completion_box);
+
+    GtkWidget *completion_day = gtk_spin_button_new_with_range(1, 31, 1);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(completion_day), time_info->tm_mday);
+    gtk_box_pack_start(GTK_BOX(completion_box), completion_day, TRUE, TRUE, 0);
+
+    GtkWidget *completion_month = gtk_combo_box_text_new();
+    gtk_box_pack_start(GTK_BOX(completion_box), completion_month, TRUE, TRUE, 0);
+
+    GtkWidget *completion_year = gtk_spin_button_new_with_range(1000, 9999, 1);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(completion_year), time_info->tm_year + 1900);
+    gtk_box_pack_start(GTK_BOX(completion_box), completion_year, TRUE, TRUE, 0);
+
+    // Month names
     const char *months[] = {
         "January",
         "February",
@@ -140,16 +162,15 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
         "December"
     };
 
+    // Fill month combo boxes
     for (unsigned int i = 0; i < 12; i++) {
         gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(creation_month), months[i]);
+        gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(completion_month), months[i]);
     }
 
+    // Set current month as the active month of both combo boxes
     gtk_combo_box_set_active(GTK_COMBO_BOX(creation_month), time_info->tm_mon);
-    gtk_box_pack_start(GTK_BOX(creation_box), creation_month, TRUE, TRUE, 0);
-
-    GtkWidget *creation_year = gtk_spin_button_new_with_range(1000, 9999, 1);
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(creation_year), time_info->tm_year + 1900);
-    gtk_box_pack_start(GTK_BOX(creation_box), creation_year, TRUE, TRUE, 0);
+    gtk_combo_box_set_active(GTK_COMBO_BOX(completion_month), time_info->tm_mon);
 
     // Set values if an existing task should be edited
     if (path) {
@@ -160,6 +181,10 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(creation_day), task->creation_day);
         gtk_combo_box_set_active(GTK_COMBO_BOX(creation_month), task->creation_month);
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(creation_year), task->creation_year);
+
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(completion_day), task->completion_day);
+        gtk_combo_box_set_active(GTK_COMBO_BOX(completion_month), task->completion_month);
+        gtk_spin_button_set_value(GTK_SPIN_BUTTON(completion_year), task->completion_year);
     }
 
     gtk_widget_show_all(dialog);
@@ -177,10 +202,17 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
             gtk_list_store_append(task_store, &iter);
         }
 
+        // Set task values to the values from the dialog box
         task->priority = gtk_combo_box_get_active(GTK_COMBO_BOX(priority_combo_box));
+
         task->creation_day = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(creation_day));
         task->creation_month = gtk_combo_box_get_active(GTK_COMBO_BOX(creation_month));
         task->creation_year = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(creation_year));
+
+        task->completion_day = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(completion_day));
+        task->completion_month = gtk_combo_box_get_active(GTK_COMBO_BOX(completion_month));
+        task->completion_year = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(completion_year));
+
         const char *desc = gtk_entry_get_text(GTK_ENTRY(desc_entry));
         set_task_description(task, desc);
 
@@ -345,6 +377,7 @@ int main(int argc, char *argv[]) {
         Task *task = add_task();
         task->priority = 0;
         set_creation_time_now(task);
+        set_completion_time_now(task);
 
         char desc[10];
         snprintf(desc, 10, "task %u", i);

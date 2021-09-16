@@ -40,6 +40,14 @@ void set_creation_time_now(Task *task) {
     task->creation_year = info->tm_year + 1900;
 }
 
+void set_completion_time_now(Task *task) {
+    time_t raw = time(NULL);
+    struct tm *info = localtime(&raw);
+    task->completion_day = info->tm_mday;
+    task->completion_month = info->tm_mon;
+    task->completion_year = info->tm_year + 1900;
+}
+
 char* get_task_priority_string(Task *task) {
     // priority colors
     const unsigned int num_colors = 5;
