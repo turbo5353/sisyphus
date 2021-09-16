@@ -168,6 +168,18 @@ void read_file(const char *filename) {
 
         Task *task = add_task();
 
+        // Check if the task has been completed
+        if (next_char == 'x') {
+            if (fgetc(file) == ' ') {
+                task->checked = 1;
+                cur = ftell(file);
+                next_char = fgetc(file);
+            }
+            else {
+                fseek(file, -1, SEEK_CUR);
+            }
+        }
+
         int num_chars = 0;
         while (next_char != '\n' && next_char != EOF) {
             num_chars++;
