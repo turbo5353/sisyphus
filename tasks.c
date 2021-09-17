@@ -7,7 +7,7 @@
 
 #define DEFAULT_TASK_LIST_SIZE 2
 
-unsigned int g_max_tasks = DEFAULT_TASK_LIST_SIZE;
+unsigned int g_max_tasks = 0;
 unsigned int g_num_tasks = 0;
 Task *task_list = NULL;
 
@@ -90,12 +90,12 @@ char* get_task_display_string(Task *task) {
     return res;
 }
 
-void init_task_list() {
-    task_list = (Task*)malloc(DEFAULT_TASK_LIST_SIZE * sizeof(Task));
-}
-
 Task* add_task() {
-    if (g_num_tasks >= g_max_tasks) {
+    if (g_max_tasks == 0) {
+        g_max_tasks = DEFAULT_TASK_LIST_SIZE;
+        task_list = (Task*)malloc(g_max_tasks * sizeof(Task));
+    }
+    else if (g_num_tasks >= g_max_tasks) {
         g_max_tasks *= 2;
         task_list = (Task*)realloc(task_list, g_max_tasks * sizeof(Task));
     }
@@ -231,8 +231,6 @@ void read_dates(FILE *file, Task *task) {
 }
 
 void read_file(const char *filename) {
-    init_task_list();
-
     FILE *file = fopen(filename, "r");
 
     for (;;) {

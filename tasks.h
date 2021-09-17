@@ -29,7 +29,6 @@ char* get_task_display_string(Task *task);
 extern unsigned int g_num_tasks;
 extern Task *task_list;
 
-void init_task_list();
 Task* add_task();
 void remove_task(unsigned int index);
 
