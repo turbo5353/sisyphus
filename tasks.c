@@ -83,7 +83,7 @@ char* get_task_priority_string(Task *task) {
 char* get_task_display_string(Task *task) {
     gchar *escaped = g_markup_escape_text(task->description, -1);
 
-    char *res = malloc(strlen(escaped) * sizeof(char));
+    char *res = malloc((strlen(escaped) + 1) * sizeof(char));
     strcpy(res, escaped);
 
     g_free(escaped);
@@ -273,7 +273,7 @@ void read_file(const char *filename) {
         }
 
         if (next == '\n') fseek(file, 1, SEEK_CUR);
-        if (fgetc(file) == EOF) {
+        if (fgetc(file) == EOF || next == EOF) {
             break;
         }
         else {
