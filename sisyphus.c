@@ -283,20 +283,41 @@ void build_ui(GtkApplication *app) {
     // Create window
     GtkWidget *window = gtk_application_window_new(app);
 
-    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
-    gtk_widget_set_margin_top(box, 12);
-    gtk_widget_set_margin_bottom(box, 12);
-    gtk_widget_set_margin_start(box, 12);
-    gtk_widget_set_margin_end(box, 12);
+    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add(GTK_CONTAINER(window), box);
+
+    // Create menu
+    GtkWidget *menu_bar = gtk_menu_bar_new();
+    gtk_box_pack_start(GTK_BOX(box), menu_bar, FALSE, FALSE, 0);
+
+    GtkWidget *file_menu_item = gtk_menu_item_new_with_mnemonic("_File");
+
+    GtkWidget *file_menu = gtk_menu_new();
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(file_menu_item), file_menu);
+
+    GtkWidget *file_open_item = gtk_menu_item_new_with_label("Open");
+    GtkWidget *file_save_item = gtk_menu_item_new_with_label("Save as");
+
+    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), file_open_item);
+    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), file_save_item);
+
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar), file_menu_item);
+
+    // Create window content
+    GtkWidget *margin_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
+    gtk_widget_set_margin_top(margin_box, 12);
+    gtk_widget_set_margin_bottom(margin_box, 12);
+    gtk_widget_set_margin_start(margin_box, 12);
+    gtk_widget_set_margin_end(margin_box, 12);
+    gtk_box_pack_start(GTK_BOX(box), margin_box, TRUE, TRUE, 0);
 
     search_bar = gtk_search_entry_new();
     g_signal_connect(search_bar, "search-changed", G_CALLBACK(search_changed), NULL);
-    gtk_box_pack_start(GTK_BOX(box), search_bar, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(margin_box), search_bar, FALSE, FALSE, 0);
 
     GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-    gtk_box_pack_start(GTK_BOX(box), scroll, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(margin_box), scroll, TRUE, TRUE, 0);
 
     task_store = gtk_list_store_new(
             N_COLUMNS,
@@ -365,7 +386,7 @@ void build_ui(GtkApplication *app) {
     gtk_container_add(GTK_CONTAINER(scroll), task_view);
 
     GtkWidget *button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-    gtk_box_pack_start(GTK_BOX(box), button_box, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(margin_box), button_box, FALSE, FALSE, 0);
 
     GtkWidget *add_task_button = gtk_button_new_with_label("Add task");
     g_signal_connect(add_task_button, "clicked", G_CALLBACK(add_task_clicked), NULL);
