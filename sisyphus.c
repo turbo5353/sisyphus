@@ -5,7 +5,7 @@
 
 #include "tasks.h"
 
-char *filename = "todo.txt";
+char *filename = NULL;
 GtkListStore *task_store = NULL;
 GtkTreeModelFilter *task_filter = NULL;
 GtkWidget *search_bar = NULL;
@@ -380,27 +380,22 @@ void build_ui(GtkApplication *app) {
     gtk_widget_show_all(GTK_WIDGET(window));
 }
 
+void open_file(GtkApplication *app, GFile **files, gint n_files, gchar *hint, gpointer data) {
+    if (n_files > 0)
+        filename = g_file_get_path(files[0]);
+
+    read_file(filename);
+    build_ui(app);
+}
+
 int main(int argc, char *argv[]) {
     // Make printf print immediately
     setbuf(stdout, NULL);
-    read_file(filename);
-
-    /*
-    for (unsigned int i = 0; i < 5; i++) {
-        Task *task = add_task();
-        task->priority = 0;
-        set_task_creation_time_now(task);
-        set_task_completion_time_now(task);
-
-        char desc[10];
-        snprintf(desc, 10, "task %u", i);
-        set_task_description(task, desc);
-    }
-    */
 
     // Create GtkApplication
-    GtkApplication *app = gtk_application_new("xyz.fossible.sisyphus", G_APPLICATION_FLAGS_NONE);
+    GtkApplication *app = gtk_application_new("xyz.fossible.sisyphus", G_APPLICATION_HANDLES_OPEN);
     g_signal_connect(app, "activate", G_CALLBACK(build_ui), NULL);
+    g_signal_connect(app, "open", G_CALLBACK(open_file), NULL);
     return g_application_run(G_APPLICATION(app), argc, argv);
 }
 
