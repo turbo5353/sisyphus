@@ -72,8 +72,11 @@ char* get_task_priority_string(Task *task) {
         }
     }
 
-    // the 7 makes space for the color string (e.g #000000)
-    size_t size = strlen(priority_format) + 7;
+    // strlen(priority_format) includes "%s" and "%c", which will not be in res
+    // The actual size of priority_format is strlen(priority_format) - 4
+    // However, res needs 2 more bytes to store the actual priority character (e.g A, B, C), and the null terminator
+    // Therefore, the correct size is strlen(priority_format) - 2
+    size_t size = strlen(priority_format) + strlen(color) - 2;
     char *res = malloc(size * sizeof(char));
 
     snprintf(res, size * sizeof(char), priority_format, color, priority_letter);
