@@ -122,6 +122,10 @@ void write_file(const char *filename) {
         return;
 
     FILE *file = fopen(filename, "w");
+    if (!file) {
+        // TODO add proper error handling
+        return;
+    }
 
     for (unsigned int i = 0; i < g_num_tasks; i++) {
         Task *task = &task_list[i];
