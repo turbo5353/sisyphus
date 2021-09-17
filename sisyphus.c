@@ -311,13 +311,36 @@ void open_file_clicked(GtkWidget *widget, gpointer window) {
     gint res = gtk_native_dialog_run(GTK_NATIVE_DIALOG(native));
     if (res == GTK_RESPONSE_ACCEPT) {
         filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(native));
-        printf("%s\n", filename);
         g_num_tasks = 0;
         read_file(filename);
         load_task_store();
     }
 
     g_object_unref(native);
+}
+
+void save_as_clicked(GtkWidget *widget, gpointer window) {
+    GtkFileChooserNative *native = gtk_file_chooser_native_new(
+            "Save as",
+            window,
+            GTK_FILE_CHOOSER_ACTION_SAVE,
+            "_Save",
+            "_Cancel");
+
+    gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(native), TRUE);
+
+    if (!filename || strlen(filename) == 0) {
+        gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(native), "todo.txt");
+    }
+    else {
+        gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(native), filename);
+    }
+
+    gint res = gtk_native_dialog_run(GTK_NATIVE_DIALOG(native));
+    if (res == GTK_RESPONSE_ACCEPT) {
+        filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(native));
+        write_file(filename);
+    }
 }
 
 void build_ui(GtkApplication *app) {
@@ -339,6 +362,7 @@ void build_ui(GtkApplication *app) {
     GtkWidget *file_open_item = gtk_menu_item_new_with_label("Open");
     g_signal_connect(file_open_item, "activate", G_CALLBACK(open_file_clicked), window);
     GtkWidget *file_save_item = gtk_menu_item_new_with_label("Save as");
+    g_signal_connect(file_save_item, "activate", G_CALLBACK(save_as_clicked), window);
 
     gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), file_open_item);
     gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), file_save_item);
