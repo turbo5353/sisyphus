@@ -118,6 +118,9 @@ void remove_task(unsigned int index) {
 }
 
 void write_file(const char *filename) {
+    if (!filename || strlen(filename) == 0)
+        return;
+
     FILE *file = fopen(filename, "w");
 
     for (unsigned int i = 0; i < g_num_tasks; i++) {
@@ -234,6 +237,9 @@ void read_dates(FILE *file, Task *task) {
 }
 
 void read_file(const char *filename) {
+    if (!filename || strlen(filename) == 0)
+        return;
+
     FILE *file = fopen(filename, "r");
 
     for (;;) {
