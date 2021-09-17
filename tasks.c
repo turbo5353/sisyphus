@@ -242,6 +242,9 @@ void read_file(const char *filename) {
 
     FILE *file = fopen(filename, "r");
 
+    if (!file)
+        return;
+
     for (;;) {
         Task *task = add_task();
 
