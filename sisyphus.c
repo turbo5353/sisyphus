@@ -5,6 +5,7 @@
 
 #include "tasks.h"
 
+size_t filename_size = 0;
 char *filename = NULL;
 GtkListStore *task_store = NULL;
 GtkTreeModelFilter *task_filter = NULL;
@@ -18,6 +19,16 @@ enum {
     COLUMN_DESCRIPTION,
     N_COLUMNS
 };
+
+void set_filename(const char *str) {
+    size_t len = strlen(str);
+    if (len >= filename_size) {
+        filename = (char*) realloc(filename, (len + 1) * sizeof(char));
+        filename_size = len + 1;
+    }
+
+    strcpy(filename, str);
+}
 
 void task_toggled(GtkCellRendererToggle *toggle, gchar *path_str, gpointer data) {
     GtkTreePath *path = gtk_tree_path_new_from_string(path_str);
@@ -310,7 +321,10 @@ void open_file_clicked(GtkWidget *widget, gpointer window) {
 
     gint res = gtk_native_dialog_run(GTK_NATIVE_DIALOG(native));
     if (res == GTK_RESPONSE_ACCEPT) {
-        filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(native));
+        char *file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(native));
+        set_filename(file);
+        g_free(file);
+
         g_num_tasks = 0;
         read_file(filename);
         load_task_store();
@@ -338,7 +352,10 @@ void save_as_clicked(GtkWidget *widget, gpointer window) {
 
     gint res = gtk_native_dialog_run(GTK_NATIVE_DIALOG(native));
     if (res == GTK_RESPONSE_ACCEPT) {
-        filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(native));
+        char *file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(native));
+        set_filename(file);
+        g_free(file);
+
         write_file(filename);
     }
 }
@@ -452,8 +469,11 @@ void build_ui(GtkApplication *app) {
 }
 
 void open_file(GtkApplication *app, GFile **files, gint n_files, gchar *hint, gpointer data) {
-    if (n_files > 0)
-        filename = g_file_get_path(files[0]);
+    if (n_files > 0) {
+        char *file = g_file_get_path(files[0]);
+        set_filename(file);
+        g_free(file);
+    }
 
     read_file(filename);
     build_ui(app);
