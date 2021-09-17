@@ -25,17 +25,12 @@ Task task_new(void) {
 
 void set_task_description(Task *task, const char *str) {
     size_t len = strlen(str);
-    if (len > task->desc_len) {
+    if (len >= task->desc_len) {
         task->description = (char*) realloc(task->description, (len + 1) * sizeof(char));
         task->desc_len = len + 1;
     }
 
-    if (len > 0) {
-        strcpy(task->description, str);
-    }
-    else {
-        task->description = "";
-    }
+    strcpy(task->description, str);
 }
 
 void set_task_creation_time_now(Task *task) {
