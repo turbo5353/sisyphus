@@ -279,6 +279,47 @@ void task_selection_changed(GtkTreeSelection *selection, gpointer user_data) {
     }
 }
 
+void load_task_store() {
+    gtk_list_store_clear(task_store);
+
+    GtkTreeIter iter;
+    for (unsigned int i = 0; i < g_num_tasks; i++) {
+        gtk_list_store_append(task_store, &iter);
+
+        char *pri_display_str = get_task_priority_string(&task_list[i]);
+        char *display_str = get_task_display_string(&task_list[i]);
+
+        gtk_list_store_set(task_store, &iter,
+                COLUMN_CHECKED, task_list[i].checked,
+                COLUMN_PRIORITY, pri_display_str,
+                COLUMN_DESCRIPTION, display_str,
+                -1);
+
+        free(pri_display_str);
+        free(display_str);
+    }
+}
+
+void open_file_clicked(GtkWidget *widget, gpointer window) {
+    GtkFileChooserNative *native = gtk_file_chooser_native_new(
+            "Open File",
+            window,
+            GTK_FILE_CHOOSER_ACTION_OPEN,
+            "_Open",
+            "_Cancel");
+
+    gint res = gtk_native_dialog_run(GTK_NATIVE_DIALOG(native));
+    if (res == GTK_RESPONSE_ACCEPT) {
+        filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(native));
+        printf("%s\n", filename);
+        g_num_tasks = 0;
+        read_file(filename);
+        load_task_store();
+    }
+
+    g_object_unref(native);
+}
+
 void build_ui(GtkApplication *app) {
     // Create window
     GtkWidget *window = gtk_application_window_new(app);
@@ -296,6 +337,7 @@ void build_ui(GtkApplication *app) {
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(file_menu_item), file_menu);
 
     GtkWidget *file_open_item = gtk_menu_item_new_with_label("Open");
+    g_signal_connect(file_open_item, "activate", G_CALLBACK(open_file_clicked), window);
     GtkWidget *file_save_item = gtk_menu_item_new_with_label("Save as");
 
     gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), file_open_item);
@@ -325,23 +367,7 @@ void build_ui(GtkApplication *app) {
             G_TYPE_STRING,
             G_TYPE_STRING);
 
-    GtkTreeIter iter;
-
-    for (unsigned int i = 0; i < g_num_tasks; i++) {
-        gtk_list_store_append(task_store, &iter);
-
-        char *pri_display_str = get_task_priority_string(&task_list[i]);
-        char *display_str = get_task_display_string(&task_list[i]);
-
-        gtk_list_store_set(task_store, &iter,
-                COLUMN_CHECKED, task_list[i].checked,
-                COLUMN_PRIORITY, pri_display_str,
-                COLUMN_DESCRIPTION, display_str,
-                -1);
-
-        free(pri_display_str);
-        free(display_str);
-    }
+    load_task_store();
 
     task_filter = GTK_TREE_MODEL_FILTER(gtk_tree_model_filter_new(GTK_TREE_MODEL(task_store), NULL));
     gtk_tree_model_filter_set_visible_func(task_filter, (GtkTreeModelFilterVisibleFunc)search_filter, NULL, NULL);
