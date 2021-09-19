@@ -249,6 +249,11 @@ void read_file(const char *filename) {
     if (!file)
         return;
 
+    if (fgetc(file) == EOF)
+        return;
+
+    fseek(file, 0, SEEK_SET);
+
     for (;;) {
         Task *task = add_task();
 
