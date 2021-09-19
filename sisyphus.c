@@ -363,6 +363,7 @@ void save_as_clicked(GtkWidget *widget, gpointer window) {
 void build_ui(GtkApplication *app) {
     // Create window
     GtkWidget *window = gtk_application_window_new(app);
+    gtk_window_set_default_size(GTK_WINDOW(window), 600, 400);
 
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add(GTK_CONTAINER(window), box);
