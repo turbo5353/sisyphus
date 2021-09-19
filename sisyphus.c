@@ -360,6 +360,17 @@ void save_as_clicked(GtkWidget *widget, gpointer window) {
     }
 }
 
+void about_clicked(GtkWidget *widget, gpointer window) {
+    const char *authors[] = { "Tobias Wienkoop", NULL };
+    gtk_show_about_dialog(
+            window,
+            "authors", authors,
+            "comments", "Simple todo.txt editor",
+            "copyright", "Copyright \u00A9 2021 Tobias Wienkoop",
+            "license-type", GTK_LICENSE_GPL_3_0,
+            NULL);
+}
+
 void build_ui(GtkApplication *app) {
     // Create window
     GtkWidget *window = gtk_application_window_new(app);
@@ -372,20 +383,31 @@ void build_ui(GtkApplication *app) {
     GtkWidget *menu_bar = gtk_menu_bar_new();
     gtk_box_pack_start(GTK_BOX(box), menu_bar, FALSE, FALSE, 0);
 
+    // File menu
     GtkWidget *file_menu_item = gtk_menu_item_new_with_mnemonic("_File");
-
     GtkWidget *file_menu = gtk_menu_new();
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(file_menu_item), file_menu);
 
     GtkWidget *file_open_item = gtk_menu_item_new_with_label("Open");
+    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), file_open_item);
     g_signal_connect(file_open_item, "activate", G_CALLBACK(open_file_clicked), window);
+
     GtkWidget *file_save_item = gtk_menu_item_new_with_label("Save as");
+    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), file_save_item);
     g_signal_connect(file_save_item, "activate", G_CALLBACK(save_as_clicked), window);
 
-    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), file_open_item);
-    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), file_save_item);
-
     gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar), file_menu_item);
+
+    // Help menu
+    GtkWidget *help_menu_item = gtk_menu_item_new_with_mnemonic("_Help");
+    GtkWidget *help_menu = gtk_menu_new();
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(help_menu_item), help_menu);
+
+    GtkWidget *help_about = gtk_menu_item_new_with_label("About");
+    gtk_menu_shell_append(GTK_MENU_SHELL(help_menu), help_about);
+    g_signal_connect(help_about, "activate", G_CALLBACK(about_clicked), window);
+
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar), help_menu_item);
 
     // Create window content
     GtkWidget *margin_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
