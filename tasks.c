@@ -249,12 +249,12 @@ void read_file(const char *filename) {
     if (!file)
         return;
 
-    if (fgetc(file) == EOF)
-        return;
-
-    fseek(file, 0, SEEK_SET);
-
     for (;;) {
+        if (fgetc(file) == EOF)
+            break;
+
+        fseek(file, -1, SEEK_CUR);
+
         Task *task = add_task();
 
         if (fgetc(file) == '\n') {
