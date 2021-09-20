@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <stdbool.h>
 #include <glib.h>
 
 #define DEFAULT_TASK_LIST_SIZE 2
@@ -240,15 +239,16 @@ void read_dates(FILE *file, Task *task) {
     }
 }
 
-void read_file(const char *filename) {
+bool read_file(const char *filename) {
     if (!filename || strlen(filename) == 0)
-        return;
+        return false;
 
     FILE *file = fopen(filename, "r");
 
     if (!file)
-        return;
+        return false;
 
+    g_num_tasks = 0;
     for (;;) {
         if (fgetc(file) == EOF)
             break;
@@ -301,5 +301,6 @@ void read_file(const char *filename) {
     }
 
     fclose(file);
+    return true;
 }
 

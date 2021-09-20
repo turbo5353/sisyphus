@@ -2,6 +2,7 @@
 #define TASKS_H
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 typedef struct {
     char checked;
@@ -33,7 +34,7 @@ Task* add_task();
 void remove_task(unsigned int index);
 
 void write_file(const char *filename);
-void read_file(const char *filenam);
+bool read_file(const char *filename);
 
 #endif
 

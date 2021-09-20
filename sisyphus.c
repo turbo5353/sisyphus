@@ -322,12 +322,25 @@ void open_file_clicked(GtkWidget *widget, gpointer window) {
     gint res = gtk_native_dialog_run(GTK_NATIVE_DIALOG(native));
     if (res == GTK_RESPONSE_ACCEPT) {
         char *file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(native));
-        set_filename(file);
-        g_free(file);
 
-        g_num_tasks = 0;
-        read_file(filename);
-        load_task_store();
+        if (!read_file(file)) {
+            GtkWidget *error_dialog = gtk_message_dialog_new(
+                    window,
+                    GTK_DIALOG_DESTROY_WITH_PARENT,
+                    GTK_MESSAGE_ERROR,
+                    GTK_BUTTONS_CLOSE,
+                    "Could not open \"%s\": %s",
+                    file,
+                    g_strerror(errno));
+            gtk_dialog_run(GTK_DIALOG(error_dialog));
+            gtk_widget_destroy(error_dialog);
+        }
+        else {
+            set_filename(file);
+            load_task_store();
+        }
+
+        g_free(file);
     }
 
     g_object_unref(native);
@@ -498,8 +511,21 @@ void open_file(GtkApplication *app, GFile **files, gint n_files, gchar *hint, gp
         g_free(file);
     }
 
-    read_file(filename);
-    build_ui(app);
+    if (!read_file(filename)) {
+        GtkWidget *error_dialog = gtk_message_dialog_new(
+                NULL,
+                GTK_DIALOG_DESTROY_WITH_PARENT,
+                GTK_MESSAGE_ERROR,
+                GTK_BUTTONS_CLOSE,
+                "Could not open \"%s\": %s",
+                filename,
+                g_strerror(errno));
+        gtk_dialog_run(GTK_DIALOG(error_dialog));
+        gtk_widget_destroy(error_dialog);
+    }
+    else {
+        build_ui(app);
+    }
 }
 
 int main(int argc, char *argv[]) {
