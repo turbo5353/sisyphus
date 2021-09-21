@@ -30,6 +30,41 @@ void set_filename(const char *str) {
     strcpy(filename, str);
 }
 
+bool read_file_or_show_error(const char *file, GtkWindow *window) {
+    bool success = read_file(file);
+
+    if (!success) {
+        GtkWidget *error_dialog = gtk_message_dialog_new(
+                window,
+                GTK_DIALOG_DESTROY_WITH_PARENT,
+                GTK_MESSAGE_ERROR,
+                GTK_BUTTONS_CLOSE,
+                "Could not open \"%s\": %s",
+                file,
+                g_strerror(errno));
+        gtk_dialog_run(GTK_DIALOG(error_dialog));
+        gtk_widget_destroy(error_dialog);
+    }
+
+    return success;
+}
+
+void write_file_or_show_error(const char *file, GtkWindow *window) {
+    if (!write_file(file)) {
+        GtkWidget *error_dialog = gtk_message_dialog_new(
+                window,
+                GTK_DIALOG_DESTROY_WITH_PARENT,
+                GTK_MESSAGE_ERROR,
+                GTK_BUTTONS_CLOSE,
+                "Could not write to \"%s\": %s\n\nTo save your changes to a different file, go to File > Save as",
+                file,
+                g_strerror(errno));
+
+        gtk_dialog_run(GTK_DIALOG(error_dialog));
+        gtk_widget_destroy(error_dialog);
+    }
+}
+
 void task_toggled(GtkCellRendererToggle *toggle, gchar *path_str, gpointer window) {
     GtkTreePath *path = gtk_tree_path_new_from_string(path_str);
     GtkTreePath *child_path = gtk_tree_model_filter_convert_path_to_child_path(task_filter, path);
@@ -66,18 +101,7 @@ void task_toggled(GtkCellRendererToggle *toggle, gchar *path_str, gpointer windo
     gtk_tree_path_free(path);
     gtk_tree_path_free(child_path);
 
-    if (!write_file(filename)) {
-        GtkWidget *error_dialog = gtk_message_dialog_new(
-                window,
-                GTK_DIALOG_DESTROY_WITH_PARENT,
-                GTK_MESSAGE_ERROR,
-                GTK_BUTTONS_CLOSE,
-                "Could not write to \"%s\": %s\n\nTo save your changes to a different file, go to File > Save as",
-                filename,
-                g_strerror(errno));
-        gtk_dialog_run(GTK_DIALOG(error_dialog));
-        gtk_widget_destroy(error_dialog);
-    }
+    write_file_or_show_error(filename, window);
 }
 
 gboolean search_filter(GtkTreeModel *model, GtkTreeIter *iter, gpointer data) {
@@ -258,18 +282,7 @@ void show_edit_task_dialog(GtkWidget *window, GtkTreePath *path) {
         free(pri_display_str);
         free(display_str);
 
-        if (!write_file(filename)) {
-            GtkWidget *error_dialog = gtk_message_dialog_new(
-                    GTK_WINDOW(window),
-                    GTK_DIALOG_DESTROY_WITH_PARENT,
-                    GTK_MESSAGE_ERROR,
-                    GTK_BUTTONS_CLOSE,
-                    "Could not write to \"%s\": %s\n\nTo save your changes to a different file, go to File > Save as",
-                    filename,
-                    g_strerror(errno));
-            gtk_dialog_run(GTK_DIALOG(error_dialog));
-            gtk_widget_destroy(error_dialog);
-        }
+        write_file_or_show_error(filename, GTK_WINDOW(window));
     }
 
     gtk_widget_destroy(dialog);
@@ -301,18 +314,7 @@ void remove_task_clicked(GtkButton *remove_task_button) {
             gtk_tree_path_free(path);
             gtk_tree_path_free(child_path);
 
-            if (!write_file(filename)) {
-                GtkWidget *error_dialog = gtk_message_dialog_new(
-                        GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(remove_task_button))),
-                        GTK_DIALOG_DESTROY_WITH_PARENT,
-                        GTK_MESSAGE_ERROR,
-                        GTK_BUTTONS_CLOSE,
-                        "Could not write to \"%s\": %s\n\nTo save your changes to a different file, go to File > Save as",
-                        filename,
-                        g_strerror(errno));
-                gtk_dialog_run(GTK_DIALOG(error_dialog));
-                gtk_widget_destroy(error_dialog);
-            }
+            write_file_or_show_error(filename, GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(remove_task_button))));
         }
     }
 }
@@ -356,19 +358,7 @@ void open_file_clicked(GtkWidget *widget, gpointer window) {
     if (res == GTK_RESPONSE_ACCEPT) {
         char *file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(native));
 
-        if (!read_file(file)) {
-            GtkWidget *error_dialog = gtk_message_dialog_new(
-                    window,
-                    GTK_DIALOG_DESTROY_WITH_PARENT,
-                    GTK_MESSAGE_ERROR,
-                    GTK_BUTTONS_CLOSE,
-                    "Could not open \"%s\": %s",
-                    file,
-                    g_strerror(errno));
-            gtk_dialog_run(GTK_DIALOG(error_dialog));
-            gtk_widget_destroy(error_dialog);
-        }
-        else {
+        if (read_file_or_show_error(file, window)) {
             set_filename(file);
             load_task_store();
         }
@@ -402,18 +392,7 @@ void save_as_clicked(GtkWidget *widget, gpointer window) {
         set_filename(file);
         g_free(file);
 
-        if (!write_file(filename)) {
-            GtkWidget *error_dialog = gtk_message_dialog_new(
-                    window,
-                    GTK_DIALOG_DESTROY_WITH_PARENT,
-                    GTK_MESSAGE_ERROR,
-                    GTK_BUTTONS_CLOSE,
-                    "Could not write to \"%s\": %s\n\nTo save your changes to a different file, go to File > Save as",
-                    filename,
-                    g_strerror(errno));
-            gtk_dialog_run(GTK_DIALOG(error_dialog));
-            gtk_widget_destroy(error_dialog);
-        }
+        write_file_or_show_error(filename, window);
     }
 }
 
@@ -555,19 +534,7 @@ void open_file(GtkApplication *app, GFile **files, gint n_files, gchar *hint, gp
         g_free(file);
     }
 
-    if (!read_file(filename)) {
-        GtkWidget *error_dialog = gtk_message_dialog_new(
-                NULL,
-                GTK_DIALOG_DESTROY_WITH_PARENT,
-                GTK_MESSAGE_ERROR,
-                GTK_BUTTONS_CLOSE,
-                "Could not open \"%s\": %s",
-                filename,
-                g_strerror(errno));
-        gtk_dialog_run(GTK_DIALOG(error_dialog));
-        gtk_widget_destroy(error_dialog);
-    }
-    else {
+    if (read_file_or_show_error(filename, NULL)) {
         build_ui(app);
     }
 }
