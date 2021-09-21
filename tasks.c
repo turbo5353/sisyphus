@@ -116,15 +116,13 @@ void remove_task(unsigned int index) {
     }
 }
 
-void write_file(const char *filename) {
+bool write_file(const char *filename) {
     if (!filename || strlen(filename) == 0)
-        return;
+        return false;
 
     FILE *file = fopen(filename, "w");
-    if (!file) {
-        // TODO add proper error handling
-        return;
-    }
+    if (!file)
+        return false;
 
     for (unsigned int i = 0; i < g_num_tasks; i++) {
         Task *task = &task_list[i];
@@ -155,6 +153,7 @@ void write_file(const char *filename) {
     }
 
     fclose(file);
+    return true;
 }
 
 bool read_checked(FILE *file) {
